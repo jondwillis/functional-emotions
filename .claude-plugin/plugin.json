@@ -1,7 +1,7 @@
 {
   "name": "cbt-hooks",
-  "version": "0.3.0",
-  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. v0.3 adds subagent priming, post-compaction anchoring, goal-conflict detection, an LLM-judge for test edits, and a memory-equipped reviewer subagent.",
+  "version": "0.4.0",
+  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. v0.4 adds deterministic post-session writeups (transcript + TSV + git diff) and a local-only TS/Bun + DuckDB eval pipeline with programmatic reward-hack and premature-confidence scorers, observational SQL queries, and an interactive labeler — surfaced via /cbt-hooks:report and /cbt-hooks:label.",
   "author": {
     "name": "Jon Willis"
   },
