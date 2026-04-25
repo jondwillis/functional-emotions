@@ -83,7 +83,7 @@ sees alongside the existing prompt. Permissions stay the user's job.
 ### Local marketplace install
 
 ```bash
-git clone https://github.com/<your-org>/cbt-hooks
+git clone https://github.com/jondwillis/cbt-hooks
 cd cbt-hooks
 claude plugin marketplace add "$(pwd)"
 claude plugin install cbt-hooks@cbt-hooks
