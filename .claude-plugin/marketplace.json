@@ -4,8 +4,8 @@
     "name": "Jon Willis"
   },
   "metadata": {
-    "description": "Emotional-priming hooks for Claude Code, grounded in Anthropic's emotion-concepts research",
-    "version": "0.2.0"
+    "description": "Emotional-priming hooks for Claude Code, grounded in Anthropic's emotion-concepts research, with a post-session writeup + DuckDB eval pipeline for measuring intervention effects",
+    "version": "0.4.0"
   },
   "plugins": [
     {
