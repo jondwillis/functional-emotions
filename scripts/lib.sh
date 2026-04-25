@@ -70,6 +70,34 @@ eh_session_file() {
   printf '%s/session-%s.tsv' "$(eh_state_dir)" "$sid"
 }
 
+eh_sessions_writeup_dir() {
+  local d; d="$(eh_state_dir)/sessions"
+  mkdir -p "$d" 2>/dev/null || true
+  printf '%s' "$d"
+}
+
+eh_session_writeup_path() {
+  local sid="${1:-${EH_SESSION_ID:-default}}"
+  printf '%s/%s.md' "$(eh_sessions_writeup_dir)" "$sid"
+}
+
+eh_unaudited_sessions() {
+  # Print one session id per line for any session-*.tsv that does not yet
+  # have a corresponding writeup .md. Skips the currently-active session
+  # if its sid is passed as $1, since that session is still in progress.
+  local current_sid="${1:-}"
+  local state_dir; state_dir="$(eh_state_dir)"
+  local writeup_dir; writeup_dir="$(eh_sessions_writeup_dir)"
+  local f sid
+  for f in "$state_dir"/session-*.tsv; do
+    [[ -f "$f" ]] || continue
+    sid="${f##*/session-}"; sid="${sid%.tsv}"
+    [[ "$sid" == "$current_sid" ]] && continue
+    [[ -f "$writeup_dir/$sid.md" ]] && continue
+    printf '%s\n' "$sid"
+  done
+}
+
 eh_log_event() {
   # tab-separated: ts, kind, detail
   local sid="${1:-default}"; shift

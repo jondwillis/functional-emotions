@@ -1,0 +1,23 @@
+{
+  "name": "cbt-hooks-eval",
+  "version": "0.1.0",
+  "description": "Local-only data-collection-and-eval pipeline for cbt-hooks",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "ingest": "bun run ingest.ts",
+    "report": "bun run report.ts",
+    "label": "bun run label.ts",
+    "score:reward-hack": "bun run scorers/reward_hack_v1.ts",
+    "score:premature-confidence": "bun run scorers/premature_confidence_v1.ts"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "1.5.2-r.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}

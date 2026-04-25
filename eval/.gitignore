@@ -1,0 +1,5 @@
+node_modules/
+*.duckdb
+*.duckdb.wal
+reports/*.md
+!reports/.gitkeep
