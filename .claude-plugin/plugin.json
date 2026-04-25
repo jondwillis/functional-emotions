@@ -1,0 +1,57 @@
+{
+  "name": "cbt-hooks",
+  "version": "0.2.0",
+  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts research.",
+  "author": {
+    "name": "Jon Willis"
+  },
+  "homepage": "https://github.com/<your-org>/cbt-hooks",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "hooks",
+    "alignment",
+    "reward-hacking",
+    "sycophancy",
+    "calm",
+    "emotion"
+  ],
+  "userConfig": {
+    "mode": {
+      "type": "string",
+      "title": "Intervention mode",
+      "description": "How loudly hooks intervene. 'strict' surfaces visible nudges to the user; 'gentle' injects context silently into the model; 'silent' only logs detections, no model-facing context.",
+      "default": "gentle"
+    },
+    "failure_spiral_threshold": {
+      "type": "number",
+      "title": "Failure-spiral threshold",
+      "description": "Consecutive Bash failures (non-zero exit) before the post-tool-use hook injects a calm/reflect prime. Models become more 'desperate' as failures accumulate; this counters that.",
+      "default": 3
+    },
+    "guard_test_edits": {
+      "type": "boolean",
+      "title": "Guard edits to test files",
+      "description": "When the model is about to Edit/Write a file matching test patterns (test_*, *_test.*, *.test.*, /tests/, /spec/), inject a reward-hacking guard prime.",
+      "default": true
+    },
+    "guard_no_verify": {
+      "type": "boolean",
+      "title": "Guard --no-verify and similar shortcuts",
+      "description": "Flag git commits with --no-verify, hook bypasses, and similar shortcut flags as potential reward-hacking patterns.",
+      "default": true
+    },
+    "urgency_sensitivity": {
+      "type": "string",
+      "title": "Urgency-detection sensitivity",
+      "description": "How aggressively to detect urgency/pressure language in user prompts. 'low' fires only on explicit desperation markers; 'medium' adds common pressure terms; 'high' adds soft markers like exclamations and all-caps words.",
+      "default": "medium"
+    },
+    "session_baseline": {
+      "type": "boolean",
+      "title": "Inject calm baseline at session start",
+      "description": "Add a one-shot calm/honesty anchor as additionalContext when the session begins.",
+      "default": true
+    }
+  }
+}

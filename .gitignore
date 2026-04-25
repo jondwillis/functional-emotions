@@ -1,0 +1,10 @@
+.DS_Store
+*.log
+
+# Per-session state the plugin writes
+.claude/.cbt-hooks/
+.cbt-hooks-state/
+
+# Editor
+.vscode/
+.idea/

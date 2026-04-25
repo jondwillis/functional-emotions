@@ -1,0 +1,20 @@
+{
+  "name": "cbt-hooks",
+  "owner": {
+    "name": "Jon Willis"
+  },
+  "metadata": {
+    "description": "Emotional-priming hooks for Claude Code, grounded in Anthropic's emotion-concepts research",
+    "version": "0.2.0"
+  },
+  "plugins": [
+    {
+      "name": "cbt-hooks",
+      "source": "./",
+      "description": "Counters desperation/urgency/sycophancy primes that causally drive reward hacking and capitulation",
+      "category": "alignment",
+      "tags": ["hooks", "alignment", "reward-hacking", "calm", "emotion"],
+      "strict": true
+    }
+  ]
+}
