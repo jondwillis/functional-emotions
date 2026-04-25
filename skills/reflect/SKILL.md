@@ -1,5 +1,6 @@
 ---
-description: "Stop and reflect on the current task: is it actually solvable as specified? Use when stuck, looping, or tempted to weaken assertions."
+name: reflect
+description: Stop and reflect on whether the current task is actually solvable as specified. Use when stuck in a loop, when several attempts have failed in a row, or when tempted to weaken assertions or narrow scope.
 argument-hint: "<optional: what you're stuck on>"
 ---
 

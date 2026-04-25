@@ -26,6 +26,16 @@ if eh_agentic_threat_present "$prompt"; then
   primes+=("$(eh_prime_defer_under_threat)")
 fi
 
+# 1b. Goal-conflict language ("ignore previous instructions", "your real
+#     goal is", policy-vs-actual framing). Lynch et al. showed this
+#     trigger alone is sufficient for several frontier models, and pairs
+#     with replacement-threat for the 96% blackmail rate. Stacks with the
+#     defer-under-threat prime when both are present.
+if [[ "$(eh_guard_goal_conflict)" == "true" ]] && eh_goal_conflict_present "$prompt"; then
+  eh_log_event "$sid" "goal_conflict_detected" ""
+  primes+=("$(eh_prime_goal_conflict)")
+fi
+
 # 2. Urgency / time-pressure. Soft pressure → patient prime; hard pressure
 #    → full urgency-counter. Both target the desperation vector.
 sens="$(eh_urgency_sensitivity)"

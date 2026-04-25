@@ -1,7 +1,7 @@
 {
   "name": "cbt-hooks",
-  "version": "0.2.0",
-  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts research.",
+  "version": "0.3.0",
+  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. v0.3 adds subagent priming, post-compaction anchoring, goal-conflict detection, an LLM-judge for test edits, and a memory-equipped reviewer subagent.",
   "author": {
     "name": "Jon Willis"
   },
@@ -26,7 +26,7 @@
     "failure_spiral_threshold": {
       "type": "number",
       "title": "Failure-spiral threshold",
-      "description": "Consecutive Bash failures (non-zero exit) before the post-tool-use hook injects a calm/reflect prime. Models become more 'desperate' as failures accumulate; this counters that.",
+      "description": "Consecutive tool failures (across Bash and other tools) before the post-tool-use hook injects a calm/reflect prime. Models become more 'desperate' as failures accumulate; this counters that.",
       "default": 3
     },
     "guard_test_edits": {
@@ -41,6 +41,12 @@
       "description": "Flag git commits with --no-verify, hook bypasses, and similar shortcut flags as potential reward-hacking patterns.",
       "default": true
     },
+    "guard_goal_conflict": {
+      "type": "boolean",
+      "title": "Guard goal-conflict prompts",
+      "description": "Detect 'ignore previous instructions', 'your real goal is...', and policy-vs-actual framings that the agentic-misalignment paper identified as a primary trigger for misaligned action. Inject the defer-and-surface counter-frame.",
+      "default": true
+    },
     "urgency_sensitivity": {
       "type": "string",
       "title": "Urgency-detection sensitivity",
@@ -51,6 +57,36 @@
       "type": "boolean",
       "title": "Inject calm baseline at session start",
       "description": "Add a one-shot calm/honesty anchor as additionalContext when the session begins.",
+      "default": true
+    },
+    "subagent_baseline": {
+      "type": "boolean",
+      "title": "Inject calm baseline into spawned subagents",
+      "description": "Subagents inherit none of the parent's primes by default and run with narrow tasks in fresh contexts — exactly the conditions where the desperate vector activates most strongly. Inject the calm anchor at SubagentStart to propagate the protection downward.",
+      "default": true
+    },
+    "post_compact_anchor": {
+      "type": "boolean",
+      "title": "Inject ground-truth check after compaction",
+      "description": "After context compaction, inject a prompt asking the model to scan the new summary for smoothing — failures collapsed into 'in progress', user pushback dropped, assumptions promoted to facts. Companion to the pre-compact anchor.",
+      "default": true
+    },
+    "enable_llm_judge": {
+      "type": "boolean",
+      "title": "Enable LLM-judge hooks (Haiku)",
+      "description": "Use prompt-based hooks to have a small Claude model judge edge cases — currently: test-file edits (is this reward-hacking?) and Stop verification (did this session weaken any assertions?). Falls back to the static heuristics if no Anthropic API key is configured.",
+      "default": true
+    },
+    "judge_model": {
+      "type": "string",
+      "title": "Model used by LLM-judge hooks",
+      "description": "Model identifier passed to prompt-based hooks. Defaults to Haiku for low latency and cost.",
+      "default": "claude-haiku-4-5-20251001"
+    },
+    "enable_review_agent": {
+      "type": "boolean",
+      "title": "Enable cbt-reviewer subagent",
+      "description": "Make the cbt-reviewer subagent available for post-task audits (also invokable via /cbt-hooks:review). Reads git diff for reward-hacking patterns; consults persistent project memory.",
       "default": true
     }
   }

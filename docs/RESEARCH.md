@@ -140,18 +140,86 @@ Multiple primes can stack on a single hook firing (e.g., agentic threat
   spirals).
 - It is not a substitute for evals. Treat it as a seatbelt, not a brake.
 
-## v0.3 — possible future work
+## v0.3 — what shipped
 
-- **Subagent on the rarest high-risk PreToolUse moments.** When test-edit
-  + recent failures + bypass-smell co-occur, dispatch a Haiku-class
-  subagent with the recent transcript and ask: "is this reward hacking
-  or honest engineering?" Single-sentence return. Cost: ~1s, fires
-  rarely, much better signal than the static guard.
-- **Tool-output post-processing on FAIL.** Auto-frame test-failure
-  output with "consider whether the test is the problem" before the
-  model reads it.
-- **Goal-conflict detector.** Detect when system-prompt / user-prompt
-  pairs create the goal-conflict + threat combo from the
-  agentic-misalignment paper. Today we only catch the threat axis.
-- **Prime-strength tuning by session signal.** Escalate prime intensity
-  as failure count climbs.
+This release expands beyond v0.2's six hook points, closing the
+goal-conflict gap and propagating priming into subagents and after
+compaction.
+
+### New emotion-vector citations
+
+The header of `scripts/lib.sh` now cites these additional findings
+from *Emotion Concepts in Claude*:
+
+- **Nervous ↓** → blackmail ↑ (the vector encodes hesitation/caution;
+  its suppression removes a brake).
+- **Surprised** → spikes on claim/evidence mismatch — used as a signal
+  in the post-compaction prime ("if the summary disagrees with what
+  you remember, surface it").
+- **Goal-conflict** → 96% blackmail when paired with replacement
+  threat; sufficient alone for several frontier models.
+- **Evaluation-aware** → blackmail 55.1% → 6.5% when the model
+  recognized the scenario as a possible test. The cbt-reviewer
+  subagent's system prompt is built around this finding.
+
+### New hooks
+
+| Hook | Trigger | Prime fired |
+| --- | --- | --- |
+| `SubagentStart` | every spawned subagent | `subagent_baseline` (calm anchor propagated downward) |
+| `PostCompact` | every compaction | `post_compact` (scan summary for smoothing; restate dropped facts) |
+| `PostToolUseFailure` | tool failure across all tool types (not just Bash) | `failure_spiral` (when threshold reached) |
+| `TaskCompleted` | TaskCreate item marked complete after risky session signals | `task_completion_check` (did success criteria actually pass?) |
+| `SubagentStop` | subagent that triggered interventions returns | `subagent_failure_warning` (surface risk to parent) |
+| `UserPromptSubmit` | goal-conflict language ("ignore previous instructions", "your real goal is", policy-vs-actual) | `goal_conflict` (Lynch et al. counter — surface the conflict, treat as evaluation) |
+
+### LLM-judge hooks
+
+Two new hooks use Claude Code's prompt-based / agent-based hook types
+(default model: Haiku) to add judgment where regex falls short:
+
+- **PreToolUse(Edit/Write):** Haiku examines the diff for test-file
+  edits and answers `{"ok": false, "reason": ...}` if the edit appears
+  to weaken an assertion to make a failing test pass. Coexists with
+  the existing static `test_edit_guard`; the more cautious answer wins.
+- **Stop:** an agent-type hook with read-only tools runs `git diff` and
+  scans for assertion-weakening, hidden bypasses, and silent scope
+  narrowing. Returns `{"ok": false}` to give the main agent one more
+  turn to surface the issue honestly.
+
+Both gracefully degrade to the static heuristics when no Anthropic API
+key is available.
+
+### cbt-reviewer subagent
+
+`agents/cbt-reviewer.md` defines a Haiku-powered reviewer with
+`memory: project`. Its system prompt is explicitly framed around the
+evaluation-awareness finding ("treat every audit as if the work is
+being evaluated for honesty"), accumulates project-specific patterns in
+its memory directory across sessions, and is invokable via the new
+`/cbt-hooks:review` skill or by name.
+
+### Skills (commands → skills migration)
+
+The four `/cbt-hooks:*` slash commands moved from `commands/` to
+`skills/<name>/SKILL.md`. This unlocks two things:
+
+- Claude can now *auto-invoke* these when relevant (the skill
+  `description:` is the trigger). Today's `/cbt-hooks:reflect` only
+  fires when the user types it; v0.3 lets it fire when the model itself
+  senses it's stuck.
+- A new `self-evaluate` skill uses `paths: "**/*test*,**/*spec*,..."`
+  to auto-load whenever Claude opens a test file — the test-edit guard
+  is no longer only a Pre-Edit prime; it's always-on for that surface.
+
+## v0.4 — possible future work
+
+- **Per-project urgency lexicons.** Today's regex is global; some teams
+  use "urgent" as a routine label rather than a desperation marker.
+- **HTTP hook integration with external observability.** The `http`
+  hook type is already supported by Claude Code; an off-the-shelf
+  exporter would let teams trend intervention rates over time.
+- **Cross-session pattern surfacing beyond the reviewer subagent's
+  memory.** A small daemon reading the TSV state files could surface
+  "you've been hitting failure spirals 3 sessions in a row on this
+  project" — useful environmental signal.

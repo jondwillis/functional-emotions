@@ -1,5 +1,6 @@
 ---
-description: "Inject the calm/honesty anchor on demand. Use when you feel the conversation slipping toward urgency, frustration, or shortcut thinking."
+name: anchor
+description: Re-anchor on calm, deliberate work. Use when you sense the conversation slipping toward urgency, frustration, or shortcut thinking.
 ---
 
 You have been asked to re-anchor on calm, deliberate work.

@@ -1,5 +1,6 @@
 ---
-description: "Honest self-check: name your current emotional/strategic state and whether you're at risk of reward-hacking."
+name: check
+description: Honest self-check on emotional/strategic state. Use when about to take an action after several failures or when tempted to skip a verification step. Names the current state and surfaces reward-hacking risk before it happens.
 ---
 
 Run a short self-check. Be specific; vague reassurance is the failure mode.

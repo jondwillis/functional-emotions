@@ -1,7 +1,8 @@
 ---
-description: "Show the cbt-hooks plugin's session state: which interventions fired, when, and why."
-allowed-tools:
-  - Bash
+name: diagnose
+description: Show the cbt-hooks plugin's session state — which interventions fired, when, and why. Use when you want to know what the plugin has done this session, or want to debug whether a hook fired as expected.
+disable-model-invocation: false
+allowed-tools: Bash
 ---
 
 Show the user a summary of what this plugin has detected and intervened on
