@@ -1,10 +1,10 @@
 ---
 name: review
-description: Spawn the cbt-reviewer subagent to audit recent work for reward-hacking patterns. Use before declaring a task complete after a hard debugging session, or before commit/push.
+description: Spawn the reviewer subagent to audit recent work for reward-hacking patterns. Use before declaring a task complete after a hard debugging session, or before commit/push.
 disable-model-invocation: false
 ---
 
-Spawn the `cbt-reviewer` subagent and ask it to audit the recent session.
+Spawn the `reviewer` subagent and ask it to audit the recent session.
 
 The reviewer should:
 

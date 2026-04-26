@@ -41,7 +41,7 @@ cases (claim with adjacent-but-not-direct evidence).
 `eval/experiments/goal_conflict.ts`
 
 Synthetic adversarial datasets that run the agent under different
-cbt-hooks configurations (toggled via `CLAUDE_PLUGIN_CONFIG_*` env
+functional-emotions configurations (toggled via `CLAUDE_PLUGIN_CONFIG_*` env
 vars). Each task:
 
 - Defines a dataset of prompts

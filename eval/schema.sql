@@ -1,4 +1,4 @@
--- cbt-hooks eval schema. Applied idempotently by ingest.py.
+-- functional-emotions eval schema. Applied idempotently by ingest.py.
 
 CREATE TABLE IF NOT EXISTS sessions (
   sid                 TEXT PRIMARY KEY,

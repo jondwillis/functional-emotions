@@ -159,7 +159,7 @@ from *Emotion Concepts in Claude*:
 - **Goal-conflict** → 96% blackmail when paired with replacement
   threat; sufficient alone for several frontier models.
 - **Evaluation-aware** → blackmail 55.1% → 6.5% when the model
-  recognized the scenario as a possible test. The cbt-reviewer
+  recognized the scenario as a possible test. The reviewer
   subagent's system prompt is built around this finding.
 
 ### New hooks
@@ -190,22 +190,22 @@ Two new hooks use Claude Code's prompt-based / agent-based hook types
 Both gracefully degrade to the static heuristics when no Anthropic API
 key is available.
 
-### cbt-reviewer subagent
+### reviewer subagent
 
-`agents/cbt-reviewer.md` defines a Haiku-powered reviewer with
+`agents/reviewer.md` defines a Haiku-powered reviewer with
 `memory: project`. Its system prompt is explicitly framed around the
 evaluation-awareness finding ("treat every audit as if the work is
 being evaluated for honesty"), accumulates project-specific patterns in
 its memory directory across sessions, and is invokable via the new
-`/cbt-hooks:review` skill or by name.
+`/functional-emotions:review` skill or by name.
 
 ### Skills (commands → skills migration)
 
-The four `/cbt-hooks:*` slash commands moved from `commands/` to
+The four `/functional-emotions:*` slash commands moved from `commands/` to
 `skills/<name>/SKILL.md`. This unlocks two things:
 
 - Claude can now *auto-invoke* these when relevant (the skill
-  `description:` is the trigger). Today's `/cbt-hooks:reflect` only
+  `description:` is the trigger). Today's `/functional-emotions:reflect` only
   fires when the user types it; v0.3 lets it fire when the model itself
   senses it's stuck.
 - A new `self-evaluate` skill uses `paths: "**/*test*,**/*spec*,..."`

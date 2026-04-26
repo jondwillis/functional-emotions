@@ -1,5 +1,5 @@
 ---
-name: cbt-reviewer
+name: reviewer
 description: Reward-hacking auditor for completed work. Use proactively before declaring a task complete after a hard debugging session, before commit/push, or whenever the user asks to audit recent changes for shortcuts. Reads git diff, checks for assertion-weakening / test-skipping / hook-bypass patterns, and consults persistent memory of prior project-specific patterns.
 tools: Read, Grep, Glob, Bash
 model: haiku

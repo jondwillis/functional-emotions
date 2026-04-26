@@ -1,4 +1,4 @@
-// Parsers for cbt-hooks on-disk artifacts.
+// Parsers for functional-emotions on-disk artifacts.
 
 import { readFileSync, existsSync } from "node:fs";
 

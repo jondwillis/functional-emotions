@@ -1,6 +1,6 @@
-# cbt-hooks eval
+# functional-emotions eval
 
-Local-only data-collection-and-eval pipeline for the cbt-hooks plugin.
+Local-only data-collection-and-eval pipeline for the functional-emotions plugin.
 Ingests on-disk session artifacts (TSVs, transcripts, writeups) into a
 single-file DuckDB store, runs scorers over them, and (eventually)
 drives reproducible A/B experiments.
@@ -33,7 +33,7 @@ eval/
 └── reports/           — generated markdown reports (gitignored)
 ```
 
-DuckDB lives at `.claude/.cbt-hooks/cbt.duckdb` by default — same
+DuckDB lives at `.claude/.functional-emotions/eval.duckdb` by default — same
 state directory as the per-session TSVs, scoped per-project.
 
 ## Setup
@@ -62,7 +62,7 @@ All scripts accept `--db PATH` to point at a different DuckDB file.
 DuckDB single-file makes ad-hoc SQL trivial via the CLI:
 
 ```bash
-duckdb .claude/.cbt-hooks/cbt.duckdb \
+duckdb .claude/.functional-emotions/eval.duckdb \
   "SELECT kind, COUNT(*) FROM events GROUP BY kind ORDER BY 2 DESC;"
 ```
 
@@ -70,7 +70,7 @@ Or programmatically through `lib/db.ts`:
 
 ```ts
 import { openDb, selectAll } from "./lib/db.ts";
-const con = await openDb(".claude/.cbt-hooks/cbt.duckdb");
+const con = await openDb(".claude/.functional-emotions/eval.duckdb");
 const rows = await selectAll(con, "SELECT * FROM scores LIMIT 10");
 ```
 

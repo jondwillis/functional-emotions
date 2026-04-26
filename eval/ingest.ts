@@ -2,7 +2,7 @@
 /**
  * ingest.ts — TSV + transcript + git diff → DuckDB.
  *
- * Idempotent ETL. Scans the cbt-hooks state directory, parses each
+ * Idempotent ETL. Scans the functional-emotions state directory, parses each
  * session's artifacts, and upserts into the eval DuckDB store. Safe to
  * re-run; a session is reprocessed only if its source files have
  * changed since the last ingest.

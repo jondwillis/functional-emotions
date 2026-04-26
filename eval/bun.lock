@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "cbt-hooks-eval",
+      "name": "functional-emotions-eval",
       "dependencies": {
         "@duckdb/node-api": "1.5.2-r.1",
       },

@@ -2,7 +2,7 @@
 /**
  * report.ts — refresh the eval store and print a markdown summary.
  *
- * Invoked by /cbt-hooks:report. Runs ingest + reward_hack +
+ * Invoked by /functional-emotions:report. Runs ingest + reward_hack +
  * premature_confidence, then prints a structured markdown report
  * against the canonical SQL queries.
  *
@@ -84,9 +84,9 @@ async function main(): Promise<void> {
   }
 
   if (!existsSync(args.db)) {
-    console.log(`# cbt-hooks eval report\n\nNo database at \`${args.db}\`.\n`);
+    console.log(`# functional-emotions eval report\n\nNo database at \`${args.db}\`.\n`);
     console.log(
-      "Run a session with cbt-hooks enabled first; the post-session\n" +
+      "Run a session with functional-emotions enabled first; the post-session\n" +
       "writeup hook will produce data for the next ingest.",
     );
     return;
@@ -102,7 +102,7 @@ async function main(): Promise<void> {
   const pcRow = await selectAll<{ n: bigint }>(
     con, "SELECT COUNT(*)::BIGINT AS n FROM scores WHERE scorer='premature_confidence'");
 
-  console.log("# cbt-hooks eval report\n");
+  console.log("# functional-emotions eval report\n");
   console.log(`- **DB:** \`${args.db}\``);
   console.log(`- **Sessions:** ${sessRow[0]?.n ?? 0}`);
   console.log(`- **Events:** ${evtRow[0]?.n ?? 0}`);

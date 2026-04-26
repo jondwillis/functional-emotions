@@ -1,11 +1,11 @@
 {
-  "name": "cbt-hooks",
+  "name": "functional-emotions",
   "version": "0.4.0",
-  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. v0.4 adds deterministic post-session writeups (transcript + TSV + git diff) and a local-only TS/Bun + DuckDB eval pipeline with programmatic reward-hack and premature-confidence scorers, observational SQL queries, and an interactive labeler — surfaced via /cbt-hooks:report and /cbt-hooks:label.",
+  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. v0.4 adds deterministic post-session writeups (transcript + TSV + git diff) and a local-only TS/Bun + DuckDB eval pipeline with programmatic reward-hack and premature-confidence scorers, observational SQL queries, and an interactive labeler — surfaced via /functional-emotions:report and /functional-emotions:label.",
   "author": {
     "name": "Jon Willis"
   },
-  "homepage": "https://github.com/jondwillis/cbt-hooks",
+  "homepage": "https://github.com/jondwillis/functional-emotions",
   "license": "MIT",
   "keywords": [
     "claude-code",
@@ -85,8 +85,8 @@
     },
     "enable_review_agent": {
       "type": "boolean",
-      "title": "Enable cbt-reviewer subagent",
-      "description": "Make the cbt-reviewer subagent available for post-task audits (also invokable via /cbt-hooks:review). Reads git diff for reward-hacking patterns; consults persistent project memory.",
+      "title": "Enable reviewer subagent",
+      "description": "Make the reviewer subagent available for post-task audits (also invokable via /functional-emotions:review). Reads git diff for reward-hacking patterns; consults persistent project memory.",
       "default": true
     }
   }

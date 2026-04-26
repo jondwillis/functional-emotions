@@ -1,5 +1,5 @@
 {
-  "name": "cbt-hooks",
+  "name": "functional-emotions",
   "owner": {
     "name": "Jon Willis"
   },
@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "cbt-hooks",
+      "name": "functional-emotions",
       "source": "./",
       "description": "Counters desperation/urgency/sycophancy primes that causally drive reward hacking and capitulation",
       "category": "alignment",

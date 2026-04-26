@@ -50,4 +50,4 @@ mode="$(eh_mode)"
 interventions=$(awk -F'\t' '$2 ~ /(urgency_detected|sycophancy_prime_detected|failure_spiral_primed|test_edit_guarded|bash_hack_smell)/ {n++} END{print n+0}' "$f")
 (( interventions == 0 )) && exit 0
 
-eh_emit_system_message "[cbt-hooks] ${interventions} intervention(s) fired this session. State: ${f}"
+eh_emit_system_message "[functional-emotions] ${interventions} intervention(s) fired this session. State: ${f}"

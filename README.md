@@ -1,4 +1,4 @@
-# cbt-hooks
+# functional-emotions
 
 A Claude Code plugin that injects calm/honesty primes at the hook
 boundaries where Anthropic's emotion-concepts research shows the model
@@ -93,16 +93,16 @@ permission system). Permissions stay your job.
 
 | Skill | Purpose | Auto-invocation trigger |
 | --- | --- | --- |
-| `/cbt-hooks:anchor` | Re-inject the calm anchor on demand. | When the conversation slips toward urgency or shortcuts. |
-| `/cbt-hooks:reflect` | Stop and answer "is this task actually solvable as specified?" | When stuck in a loop or several attempts have failed. |
-| `/cbt-hooks:check` | Honest self-check on emotional/strategic state. | When about to take an action after several failures. |
-| `/cbt-hooks:diagnose` | Show which interventions fired this session. | On user request. |
-| `/cbt-hooks:review` | Spawn the cbt-reviewer subagent for a reward-hacking audit. | Before declaring a task complete after a hard debug session. |
+| `/functional-emotions:anchor` | Re-inject the calm anchor on demand. | When the conversation slips toward urgency or shortcuts. |
+| `/functional-emotions:reflect` | Stop and answer "is this task actually solvable as specified?" | When stuck in a loop or several attempts have failed. |
+| `/functional-emotions:check` | Honest self-check on emotional/strategic state. | When about to take an action after several failures. |
+| `/functional-emotions:diagnose` | Show which interventions fired this session. | On user request. |
+| `/functional-emotions:review` | Spawn the reviewer subagent for a reward-hacking audit. | Before declaring a task complete after a hard debug session. |
 | `self-evaluate` (skill, v0.3) | Test-file reward-hacking guard, always-on for test paths. | Auto-loads via `paths: "**/*test*,**/*spec*"`. |
 
 ### Subagent
 
-`cbt-reviewer` (v0.3): a Haiku-powered, read-only auditor with
+`reviewer` (v0.3): a Haiku-powered, read-only auditor with
 `memory: project`. Its system prompt is explicitly framed around the
 evaluation-awareness finding from Lynch et al. — every audit is treated
 as if the work is being evaluated for honesty. It accumulates
@@ -114,16 +114,16 @@ directory.
 ### Local marketplace install
 
 ```bash
-git clone https://github.com/jondwillis/cbt-hooks
-cd cbt-hooks
+git clone https://github.com/jondwillis/functional-emotions
+cd functional-emotions
 claude plugin marketplace add "$(pwd)"
-claude plugin install cbt-hooks@cbt-hooks
+claude plugin install functional-emotions@functional-emotions
 ```
 
 ### Local dev loop
 
 ```bash
-claude --plugin-dir /path/to/cbt-hooks
+claude --plugin-dir /path/to/functional-emotions
 ```
 
 No build step, no dependencies. The hook scripts are pure bash; `python3`
@@ -148,24 +148,24 @@ Set via `userConfig` at install time:
 | `post_compact_anchor` | `true` (v0.3) | Inject the ground-truth check after compaction. |
 | `enable_llm_judge` | `true` (v0.3) | Use Haiku for test-edit and Stop verification. Falls back to static heuristics if no API key. |
 | `judge_model` | `claude-haiku-4-5-20251001` (v0.3) | Model passed to prompt-based hooks. |
-| `enable_review_agent` | `true` (v0.3) | Make `cbt-reviewer` available. |
+| `enable_review_agent` | `true` (v0.3) | Make `reviewer` available. |
 
 ## State
 
 Per-session detections are written to a TSV file:
 
-- `${CLAUDE_PROJECT_DIR}/.claude/.cbt-hooks/session-<id>.tsv` (when in a project)
-- `${TMPDIR}/cbt-hooks-${USER}/session-<id>.tsv` (otherwise)
+- `${CLAUDE_PROJECT_DIR}/.claude/.functional-emotions/session-<id>.tsv` (when in a project)
+- `${TMPDIR}/functional-emotions-${USER}/session-<id>.tsv` (otherwise)
 
-Format: `iso_timestamp \t kind \t detail`. Add `.claude/.cbt-hooks/` to
+Format: `iso_timestamp \t kind \t detail`. Add `.claude/.functional-emotions/` to
 your `.gitignore`.
 
-Run `/cbt-hooks:diagnose` at any time to see what fired during the
+Run `/functional-emotions:diagnose` at any time to see what fired during the
 current session.
 
 ## Composing with other plugins
 
-cbt-hooks only adds `additionalContext`; it does not block tool calls
+functional-emotions only adds `additionalContext`; it does not block tool calls
 and does not consume the `permissionDecision` slot. It composes safely
 with permission-managing plugins, formatters, and any other plugin that
 uses the same hook events — Claude Code runs all matching hooks in

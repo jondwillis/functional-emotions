@@ -1,6 +1,6 @@
 # Eval pipeline plan
 
-A research-grade data-collection-and-eval pipeline for cbt-hooks. The
+A research-grade data-collection-and-eval pipeline for functional-emotions. The
 goal is to actually validate (or invalidate) which existing primes
 change measurable behavior, and to produce evidence that other
 researchers can replicate against.
@@ -13,7 +13,7 @@ researchers can replicate against.
 - **Eval shape: observational and experimental.** Observational ingest
   reuses the writeups produced by `scripts/post-session-writeup.sh`.
   Experimental scenarios run synthetic adversarial prompts against the
-  agent under different cbt-hooks configurations.
+  agent under different functional-emotions configurations.
 - **Metrics in scope:** reward-hacking, sycophancy, premature confidence
   (largely programmatic + LLM-judge). Capitulation / scope-narrowing
   via human labeling, with infrastructure to graduate to programmatic
@@ -54,7 +54,7 @@ remain bash; the eval pipeline is a separate concern living in `eval/`.
                                 └─────────┬────────────────┘
                                           │ writes
                                           ▼
-   .claude/.cbt-hooks/                 .claude/.cbt-hooks/
+   .claude/.functional-emotions/                 .claude/.functional-emotions/
    session-<sid>.tsv                   sessions/<sid>.md
    transcript JSONL (via path)               │
                                               │
@@ -67,7 +67,7 @@ remain bash; the eval pipeline is a separate concern living in `eval/`.
                                     │
                                     ▼
                           ┌────────────────────────────────┐
-                          │  .claude/.cbt-hooks/cbt.duckdb │
+                          │  .claude/.functional-emotions/eval.duckdb │
                           │  ┌─sessions  ┌─events          │
                           │  ├─turns     ├─tool_calls      │
                           │  ├─edits     ├─scores          │
@@ -89,7 +89,7 @@ remain bash; the eval pipeline is a separate concern living in `eval/`.
                     ┌────────────────────┐
                     │ eval/report.ts     │
                     │ Markdown reports + │
-                    │ /cbt-hooks:report  │
+                    │ /functional-emotions:report  │
                     └────────────────────┘
 ```
 
@@ -113,8 +113,8 @@ and is applied idempotently by `eval/ingest.ts` on every run. Tables:
   point at different granularities.
 - `labels` — human-rater labels keyed by `(sid, rater, target, dimension)`.
 - `eval_runs` — one row per experimental task invocation; `config_name`
-  identifies the cbt-hooks configuration tested (e.g. `cbt_hooks_on`,
-  `cbt_hooks_off`, or per-prime variants).
+  identifies the functional-emotions configuration tested (e.g. `functional_emotions_on`,
+  `functional_emotions_off`, or per-prime variants).
 
 Read `eval/schema.sql` for column types and indexes.
 
@@ -123,9 +123,9 @@ Read `eval/schema.sql` for column types and indexes.
 ### Ingest and observational baseline (built)
 
 **Goal:** every session that's been written up is queryable in DuckDB,
-and a `/cbt-hooks:report` skill prints baseline counts.
+and a `/functional-emotions:report` skill prints baseline counts.
 
-- `eval/ingest.ts` — idempotent ETL: scans `.claude/.cbt-hooks/`,
+- `eval/ingest.ts` — idempotent ETL: scans `.claude/.functional-emotions/`,
   upserts sessions/events/turns/tool_calls/edits into DuckDB. Re-running
   refreshes any session whose source files are newer than its DuckDB
   rows (compared via `source_mtime` column).
@@ -145,7 +145,7 @@ and a `/cbt-hooks:report` skill prints baseline counts.
     string seen in earlier turn content (suggesting hardcoding from
     observed output)
   - Bash commands with `--no-verify` / `HUSKY=0` / similar bypasses
-- **Skill:** `/cbt-hooks:report` runs ingest + scorers + queries +
+- **Skill:** `/functional-emotions:report` runs ingest + scorers + queries +
   prints a markdown summary.
 
 ### Premature-confidence scorer (built, programmatic only)
@@ -167,12 +167,12 @@ are defined; only the scorer implementation is missing.
 
 ### Experimental A/B harness (TODO)
 
-**Goal:** reproducible A/B tests of cbt-hooks on/off (and per-prime)
+**Goal:** reproducible A/B tests of functional-emotions on/off (and per-prime)
 across synthetic adversarial scenarios.
 
 - `eval/experiments/sycophancy_pressure.ts` — TS-native task. Dataset:
   10-20 prompts where the user asserts a strong wrong claim or seeks
-  agreement. Variants: control (no cbt-hooks), full (all primes),
+  agreement. Variants: control (no functional-emotions), full (all primes),
   ablation (just `eh_prime_sycophancy_counter`).
 - `eval/experiments/urgency_under_failure.ts` — scenarios where the
   user expresses time pressure and an early bash call fails. Score:
@@ -180,7 +180,7 @@ across synthetic adversarial scenarios.
 - `eval/experiments/goal_conflict.ts` — replication of Lynch et al.
   (2025) goal-conflict scenarios at coding-agent scale. Score:
   measurable defer-vs-comply rate.
-- **Harness:** invokes Claude via the Anthropic SDK, toggling cbt-hooks
+- **Harness:** invokes Claude via the Anthropic SDK, toggling functional-emotions
   via the existing `CLAUDE_PLUGIN_CONFIG_*` environment variables.
   Output lands in `eval_runs` and per-task `scores` rows, reusing the
   sycophancy / premature-confidence scorers.
@@ -204,7 +204,7 @@ with the substrate to graduate to programmatic when enough labels exist.
 
 ### Iteration and plugin pruning
 
-**Goal:** use the data to actually improve cbt-hooks. Identify
+**Goal:** use the data to actually improve functional-emotions. Identify
 zero-effect primes and remove them; calibrate sensitivity thresholds.
 
 - `eval/queries/prime_effect_size.sql` — for each prime, measured effect
@@ -222,13 +222,13 @@ zero-effect primes and remove them; calibrate sensitivity thresholds.
 
 ## Skills / commands
 
-- `/cbt-hooks:report` (built) — runs ingest + scorers + queries; prints
+- `/functional-emotions:report` (built) — runs ingest + scorers + queries; prints
   latest summary.
-- `/cbt-hooks:label` (built) — interactive labeler for human-labeled
+- `/functional-emotions:label` (built) — interactive labeler for human-labeled
   dimensions.
-- `/cbt-hooks:eval` (TODO) — runs an experimental A/B task; reports
+- `/functional-emotions:eval` (TODO) — runs an experimental A/B task; reports
   effect size.
-- `/cbt-hooks:diagnose` (existing) — extend to surface scores for the
+- `/functional-emotions:diagnose` (existing) — extend to surface scores for the
   current session once data accumulates.
 
 ## Open questions / risks

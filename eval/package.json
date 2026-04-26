@@ -1,7 +1,7 @@
 {
-  "name": "cbt-hooks-eval",
+  "name": "functional-emotions-eval",
   "version": "0.1.0",
-  "description": "Local-only data-collection-and-eval pipeline for cbt-hooks",
+  "description": "Local-only data-collection-and-eval pipeline for functional-emotions",
   "type": "module",
   "private": true,
   "scripts": {

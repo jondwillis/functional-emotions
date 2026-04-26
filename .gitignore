@@ -2,8 +2,8 @@
 *.log
 
 # Per-session state the plugin writes
-.claude/.cbt-hooks/
-.cbt-hooks-state/
+.claude/.functional-emotions/
+.functional-emotions-state/
 
 # Editor
 .vscode/

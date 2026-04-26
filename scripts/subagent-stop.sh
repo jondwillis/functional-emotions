@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# SubagentStop hook — when a subagent that triggered cbt-hooks
+# SubagentStop hook — when a subagent that triggered functional-emotions
 # interventions returns to its parent, surface a short warning so the
 # parent doesn't blindly consume the result. Subagent reasoning isn't
-# visible to the parent; the cbt-hooks log is the only signal that the
+# visible to the parent; the functional-emotions log is the only signal that the
 # subagent was operating under reward-hack pressure.
 
 set -u
