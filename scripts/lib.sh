@@ -39,7 +39,17 @@ eh_get_config() {
   printf '%s' "$val"
 }
 
-eh_mode() { eh_get_config mode gentle; }
+eh_mode() {
+  # Three modes:
+  #   loud   — emit model-facing primes AND user-visible ★ banners + Stop summary
+  #   gentle — emit model-facing primes only (no banners, no Stop summary)
+  #   silent — log detections only; no model- or user-facing emission
+  # 'strict' is accepted as a deprecated alias for 'loud'.
+  local m
+  m="$(eh_get_config mode loud)"
+  [[ "$m" == "strict" ]] && m="loud"
+  printf '%s' "$m"
+}
 eh_failure_threshold() { eh_get_config failure_spiral_threshold 3; }
 eh_guard_test_edits() { eh_get_config guard_test_edits true; }
 eh_guard_no_verify() { eh_get_config guard_no_verify true; }
@@ -167,7 +177,9 @@ PY
 
 eh_emit_additional_context() {
   # $1 = hook event name, $2 = context body
+  # Suppressed in 'silent' mode (log-only, no model-facing context).
   local event="$1" body="$2"
+  [[ "$(eh_mode)" == "silent" ]] && return 0
   if command -v python3 >/dev/null 2>&1; then
     EH_EVT="$event" EH_BODY="$body" python3 - <<'PY' 2>/dev/null
 import json, os
@@ -186,7 +198,13 @@ PY
 }
 
 eh_emit_system_message() {
+  # User-visible system message. Suppressed in both 'gentle' and 'silent' —
+  # only fires in 'loud' mode (default).
   local msg="$1"
+  case "$(eh_mode)" in
+    loud) ;;
+    *) return 0 ;;
+  esac
   if command -v python3 >/dev/null 2>&1; then
     EH_MSG="$msg" python3 - <<'PY' 2>/dev/null
 import json, os
@@ -201,8 +219,16 @@ eh_emit_with_banner() {
   # $1 = hook event name, $2 = additionalContext body, $3 = banner text (optional)
   # Emits a single JSON envelope combining hookSpecificOutput.additionalContext
   # (model-facing prime) and a top-level systemMessage (user-visible banner).
-  # If banner is empty, falls back to additionalContext-only.
+  # Mode behavior:
+  #   loud   — emit both prime and banner
+  #   gentle — emit prime only (drop banner)
+  #   silent — emit nothing (log-only)
   local event="$1" body="$2" banner="${3:-}"
+  case "$(eh_mode)" in
+    silent) return 0 ;;
+    gentle) banner="" ;;
+    loud|*) ;;
+  esac
   if command -v python3 >/dev/null 2>&1; then
     EH_EVT="$event" EH_BODY="$body" EH_BANNER="$banner" python3 - <<'PY' 2>/dev/null
 import json, os

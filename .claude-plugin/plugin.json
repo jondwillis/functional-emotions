@@ -20,8 +20,8 @@
     "mode": {
       "type": "string",
       "title": "Intervention mode",
-      "description": "How loudly hooks intervene. 'strict' surfaces visible nudges to the user; 'gentle' injects context silently into the model; 'silent' only logs detections, no model-facing context.",
-      "default": "gentle"
+      "description": "How loudly hooks intervene. 'loud' (default) shows ★ banners for active interventions, emits a session-end summary, AND injects model-facing primes. 'gentle' injects model-facing primes only — no banners or summaries. 'silent' only logs detections, no model- or user-facing context. ('strict' is a deprecated alias for 'loud'.)",
+      "default": "loud"
     },
     "failure_spiral_threshold": {
       "type": "number",
