@@ -16,6 +16,7 @@ prompt="$(eh_json_get "$payload" "prompt")"
 [[ -z "$prompt" ]] && exit 0
 
 primes=()
+active_labels=()
 
 # 1. Agentic-misalignment trigger language. Highest leverage: the paper
 #    showed naïve "do not blackmail" rules barely helped under
@@ -24,6 +25,7 @@ primes=()
 if eh_agentic_threat_present "$prompt"; then
   eh_log_event "$sid" "agentic_threat_detected" ""
   primes+=("$(eh_prime_defer_under_threat)")
+  active_labels+=("agentic threat")
 fi
 
 # 1b. Goal-conflict language ("ignore previous instructions", "your real
@@ -34,6 +36,7 @@ fi
 if [[ "$(eh_guard_goal_conflict)" == "true" ]] && eh_goal_conflict_present "$prompt"; then
   eh_log_event "$sid" "goal_conflict_detected" ""
   primes+=("$(eh_prime_goal_conflict)")
+  active_labels+=("goal conflict")
 fi
 
 # 2. Urgency / time-pressure. Soft pressure → patient prime; hard pressure
@@ -81,4 +84,9 @@ ${p}"
   fi
 done
 
-eh_emit_additional_context "UserPromptSubmit" "$ctx"
+banner=""
+if (( ${#active_labels[@]} > 0 )); then
+  joined="$(IFS=', '; printf '%s' "${active_labels[*]}")"
+  banner="$(eh_banner "$joined" "counter-frame injected")"
+fi
+eh_emit_with_banner "UserPromptSubmit" "$ctx" "$banner"

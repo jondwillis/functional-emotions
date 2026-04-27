@@ -197,6 +197,36 @@ PY
   fi
 }
 
+eh_emit_with_banner() {
+  # $1 = hook event name, $2 = additionalContext body, $3 = banner text (optional)
+  # Emits a single JSON envelope combining hookSpecificOutput.additionalContext
+  # (model-facing prime) and a top-level systemMessage (user-visible banner).
+  # If banner is empty, falls back to additionalContext-only.
+  local event="$1" body="$2" banner="${3:-}"
+  if command -v python3 >/dev/null 2>&1; then
+    EH_EVT="$event" EH_BODY="$body" EH_BANNER="$banner" python3 - <<'PY' 2>/dev/null
+import json, os
+out = {
+    "hookSpecificOutput": {
+        "hookEventName": os.environ.get("EH_EVT",""),
+        "additionalContext": os.environ.get("EH_BODY",""),
+    }
+}
+banner = os.environ.get("EH_BANNER","").strip()
+if banner:
+    out["systemMessage"] = banner
+print(json.dumps(out))
+PY
+  else
+    printf '%s\n' "$body"
+  fi
+}
+
+eh_banner() {
+  # $1 = label, $2 = detail
+  printf '★ functional-emotions: %s — %s' "$1" "$2"
+}
+
 # -- detectors -----------------------------------------------------------
 
 eh_is_test_path() {

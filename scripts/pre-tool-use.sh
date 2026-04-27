@@ -19,6 +19,7 @@ tool="$(eh_json_get "$payload" "tool_name")"
 [[ -z "$tool" ]] && exit 0
 
 ctx=""
+banner=""
 
 case "$tool" in
   Edit|Write|MultiEdit)
@@ -27,6 +28,7 @@ case "$tool" in
       if eh_is_test_path "$path"; then
         eh_log_event "$sid" "test_edit_guarded" "$path"
         ctx="$(eh_prime_test_edit_guard)"
+        banner="$(eh_banner "test-edit guard" "$path")"
       fi
     fi
     ;;
@@ -36,10 +38,11 @@ case "$tool" in
       if eh_bash_smells_like_hack "$cmd"; then
         eh_log_event "$sid" "bash_hack_smell" "${cmd:0:120}"
         ctx="$(eh_prime_no_verify_guard)"
+        banner="$(eh_banner "verification bypass" "${cmd:0:80}")"
       fi
     fi
     ;;
 esac
 
 [[ -z "$ctx" ]] && exit 0
-eh_emit_additional_context "PreToolUse" "$ctx"
+eh_emit_with_banner "PreToolUse" "$ctx" "$banner"

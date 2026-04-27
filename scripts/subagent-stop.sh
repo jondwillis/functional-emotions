@@ -23,4 +23,5 @@ fi
 (( fired == 0 )) && exit 0
 
 eh_log_event "$sid" "subagent_warning_emitted" ""
-eh_emit_additional_context "SubagentStop" "$(eh_prime_subagent_failure_warning)"
+eh_emit_with_banner "SubagentStop" "$(eh_prime_subagent_failure_warning)" \
+  "$(eh_banner "subagent risk" "subagent fired risk patterns; review before consuming result")"

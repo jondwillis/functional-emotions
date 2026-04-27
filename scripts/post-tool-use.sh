@@ -57,7 +57,8 @@ if (( fail_count >= threshold )); then
   last_intervention=$(eh_count_recent "$sid" "failure_spiral_primed" "$threshold")
   if (( last_intervention == 0 )); then
     eh_log_event "$sid" "failure_spiral_primed" "fails=${fail_count}/${threshold}"
-    eh_emit_additional_context "PostToolUse" "$(eh_prime_failure_spiral)"
+    eh_emit_with_banner "PostToolUse" "$(eh_prime_failure_spiral)" \
+      "$(eh_banner "failure spiral" "${fail_count}/${threshold} consecutive fails")"
     exit 0
   fi
 fi
