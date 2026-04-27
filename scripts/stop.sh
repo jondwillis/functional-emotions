@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Stop hook — capture transcript_path for the post-session writeup, log a
-# diagnostic gate signal, then (in strict mode only) emit a one-line
-# summary to the user as a systemMessage.
+# diagnostic gate signal, then emit a session-summary banner whenever any
+# interventions fired during the session.
 #
 # This hook does not gate the downstream Stop *agent* hook directly —
 # that hook is a separate entry in hooks.json and its own prompt
@@ -42,10 +42,6 @@ fi
 
 f="$(eh_session_file "$sid")"
 [[ -f "$f" ]] || exit 0
-
-# Only summarize in 'strict' mode — gentle and silent stay quiet on Stop.
-mode="$(eh_mode)"
-[[ "$mode" == "strict" ]] || exit 0
 
 read -r interventions breakdown < <(awk -F'\t' '
   $2=="urgency_detected"          {u++}
