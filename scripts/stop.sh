@@ -47,7 +47,27 @@ f="$(eh_session_file "$sid")"
 mode="$(eh_mode)"
 [[ "$mode" == "strict" ]] || exit 0
 
-interventions=$(awk -F'\t' '$2 ~ /(urgency_detected|sycophancy_prime_detected|failure_spiral_primed|test_edit_guarded|bash_hack_smell)/ {n++} END{print n+0}' "$f")
+read -r interventions breakdown < <(awk -F'\t' '
+  $2=="urgency_detected"          {u++}
+  $2=="sycophancy_prime_detected" {s++}
+  $2=="failure_spiral_primed"     {fs++}
+  $2=="test_edit_guarded"         {te++}
+  $2=="bash_hack_smell"           {bh++}
+  END {
+    n = (u+0)+(s+0)+(fs+0)+(te+0)+(bh+0)
+    parts = ""
+    if (u)  parts = parts (parts?", ":"") "urgency:" u
+    if (s)  parts = parts (parts?", ":"") "sycophancy:" s
+    if (fs) parts = parts (parts?", ":"") "failure-spiral:" fs
+    if (te) parts = parts (parts?", ":"") "test-guard:" te
+    if (bh) parts = parts (parts?", ":"") "bash-hack:" bh
+    if (parts == "") parts = "-"
+    print n, parts
+  }
+' "$f")
 (( interventions == 0 )) && exit 0
 
-eh_emit_system_message "[functional-emotions] ${interventions} intervention(s) fired this session. State: ${f}"
+top="★ Functional emotions ──────────────────────────"
+bot="─────────────────────────────────────────────────"
+eh_emit_system_message "$(printf '%s\n  %d intervention(s) this session: %s\n  State: %s\n%s' \
+  "$top" "$interventions" "$breakdown" "$f" "$bot")"
