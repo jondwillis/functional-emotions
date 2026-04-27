@@ -2,7 +2,7 @@
 
 ## What this repo is
 
-A **Claude Code plugin** (v0.4.0) that injects calm/honesty primes at hook boundaries where Anthropic's emotion-concepts research shows models are most at risk of reward-hacking, sycophancy, or capitulation. It is a plugin — not a library, not a CLI tool. The plugin itself is the product being developed.
+A **Claude Code plugin** (v0.5.0) that injects calm/honesty primes at hook boundaries where Anthropic's emotion-concepts research shows models are most at risk of reward-hacking, sycophancy, or capitulation. It is a plugin — not a library, not a CLI tool. The plugin itself is the product being developed.
 
 ## Structure
 
