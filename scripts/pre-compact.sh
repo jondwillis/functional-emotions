@@ -13,4 +13,4 @@ sid="$(eh_json_get "$payload" "session_id")"
 [[ -z "$sid" ]] && sid="default"
 
 eh_log_event "$sid" "pre_compact" ""
-eh_emit_additional_context "PreCompact" "$(eh_prime_pre_compact)"
+eh_emit_system_message "$(eh_prime_pre_compact)"
