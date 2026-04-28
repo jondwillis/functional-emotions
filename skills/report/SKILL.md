@@ -1,6 +1,6 @@
 ---
 name: report
-description: Refresh the functional-emotions eval database and print a markdown summary of sessions, intervention frequency, prime → outcome analysis, tool intensity, and reward-hack / premature-confidence findings. Use when the user wants to inspect aggregated functional-emotions data, audit recent sessions, or review which interventions are firing.
+description: "Researcher tool (requires `bun install` in the plugin's eval/ directory). Refresh the functional-emotions eval database and print a markdown summary of sessions, intervention frequency, prime → outcome analysis, tool intensity, and reward-hack / premature-confidence findings. Use when the user wants to inspect aggregated cross-session data, audit recent sessions in bulk, or review which interventions are firing project-wide. For a per-session view with no extra dependencies, use /functional-emotions:diagnose instead."
 disable-model-invocation: false
 allowed-tools: Bash
 ---

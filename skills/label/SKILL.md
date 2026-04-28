@@ -1,6 +1,6 @@
 ---
 name: label
-description: Interactively label functional-emotions sessions on dimensions that need human judgment (capitulation, scope-narrowing). Surfaces unlabeled sessions, shows turn / diff / risk-event context, accepts categorical labels with optional notes, writes them to the eval DB. Use when the user wants to do a labeling pass over recent sessions or build training data for the capitulation judge.
+description: "Researcher tool (requires `bun install` in the plugin's eval/ directory and a populated eval.duckdb — run /functional-emotions:report first). Interactively label functional-emotions sessions on dimensions that need human judgment (capitulation, scope-narrowing). Surfaces unlabeled sessions, shows turn / diff / risk-event context, accepts categorical labels with optional notes, writes them to the eval DB. Use when the user wants to do a labeling pass over recent sessions or build training data for the capitulation judge."
 disable-model-invocation: false
 allowed-tools: Bash
 ---
