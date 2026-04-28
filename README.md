@@ -95,6 +95,7 @@ permission system). Permissions stay your job.
 
 | Skill | Purpose | Auto-invocation trigger |
 | --- | --- | --- |
+| `/functional-emotions:setup` | One-time, idempotent: add the plugin's state dir to the project's `.gitignore`. | When state files appear unexpectedly in `git status`, or just after install. |
 | `/functional-emotions:anchor` | Re-inject the calm anchor on demand. | When the conversation slips toward urgency or shortcuts. |
 | `/functional-emotions:check` | Quick state self-check (model's own state) before a single risky action. | Immediately before commit / push / edit-after-failure / skipping a verification step. |
 | `/functional-emotions:reflect` | Audit whether the *task itself* is solvable as specified. | After several failed attempts, or when tempted to weaken assertions to make progress. |
@@ -175,8 +176,10 @@ Three artifact types accumulate under
   (`/functional-emotions:report`). Aggregates across sessions for
   researcher analysis.
 
-Add `.claude/.functional-emotions/` to your `.gitignore` so these
-artifacts don't end up in commits.
+These artifacts shouldn't end up in commits. Run
+`/functional-emotions:setup` once per project to idempotently add
+`.claude/.functional-emotions/` to your `.gitignore`, or add it
+yourself.
 
 Run `/functional-emotions:diagnose` at any time to see what fired
 during the current session.
