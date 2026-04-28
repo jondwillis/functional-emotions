@@ -44,10 +44,11 @@ fi
 sens="$(eh_urgency_sensitivity)"
 score="$(eh_urgency_score "$prompt" "$sens")"
 if (( score >= 2 )); then
-  eh_log_event "$sid" "urgency_detected" "score=${score}"
   if (( score >= 3 )); then
+    eh_log_event "$sid" "urgency_detected" "score=${score} prime=urgency_counter"
     primes+=("$(eh_prime_urgency_counter)")
   else
+    eh_log_event "$sid" "urgency_detected" "score=${score} prime=patient"
     primes+=("$(eh_prime_patient)")
   fi
 fi

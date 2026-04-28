@@ -16,6 +16,13 @@ payload="$(eh_read_stdin)"
 sid="$(eh_json_get "$payload" "session_id")"
 [[ -z "$sid" ]] && sid="default"
 
+# Snapshot the active config as JSON so post-hoc analysis can compare
+# loud / gentle / silent runs (and other knobs) without re-deriving from env.
+# Logged unconditionally — captures the config even when the baseline gate
+# below short-circuits (e.g. session_baseline=false).
+config_json="$(eh_config_snapshot_json)"
+[[ -n "$config_json" ]] && eh_log_event "$sid" "config_snapshot" "$config_json"
+
 # Background writeups for unaudited prior sessions. Detached so the hook
 # returns immediately; the writeups land whenever they finish. We
 # sequence them in a single subshell rather than fanning out in parallel

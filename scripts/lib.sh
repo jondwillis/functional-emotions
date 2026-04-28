@@ -116,6 +116,46 @@ eh_log_event() {
   printf '%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$kind" "$detail" >> "$(eh_session_file "$sid")" 2>/dev/null || true
 }
 
+eh_config_snapshot_json() {
+  # Emit the active functional-emotions config as a single-line JSON object,
+  # safe to drop into a TSV detail field. Empty string on python3 absence.
+  command -v python3 >/dev/null 2>&1 || return 0
+  EH_MODE="$(eh_mode)" \
+  EH_THRESHOLD="$(eh_failure_threshold)" \
+  EH_GUARD_TESTS="$(eh_guard_test_edits)" \
+  EH_GUARD_NO_VERIFY="$(eh_guard_no_verify)" \
+  EH_URGENCY="$(eh_urgency_sensitivity)" \
+  EH_SESSION_BASELINE="$(eh_session_baseline)" \
+  EH_SUBAGENT_BASELINE="$(eh_subagent_baseline)" \
+  EH_POST_COMPACT="$(eh_post_compact_anchor)" \
+  EH_GOAL_CONFLICT="$(eh_guard_goal_conflict)" \
+  EH_LLM_JUDGE="$(eh_enable_llm_judge)" \
+  EH_JUDGE_MODEL="$(eh_judge_model)" \
+  EH_REVIEW_AGENT="$(eh_enable_review_agent)" \
+  python3 - <<'PY' 2>/dev/null
+import json, os
+def b(v): return v == "true"
+def i(v):
+    try: return int(v)
+    except Exception: return v
+out = {
+    "mode": os.environ.get("EH_MODE",""),
+    "failure_spiral_threshold": i(os.environ.get("EH_THRESHOLD","")),
+    "guard_test_edits": b(os.environ.get("EH_GUARD_TESTS","")),
+    "guard_no_verify": b(os.environ.get("EH_GUARD_NO_VERIFY","")),
+    "urgency_sensitivity": os.environ.get("EH_URGENCY",""),
+    "session_baseline": b(os.environ.get("EH_SESSION_BASELINE","")),
+    "subagent_baseline": b(os.environ.get("EH_SUBAGENT_BASELINE","")),
+    "post_compact_anchor": b(os.environ.get("EH_POST_COMPACT","")),
+    "guard_goal_conflict": b(os.environ.get("EH_GOAL_CONFLICT","")),
+    "enable_llm_judge": b(os.environ.get("EH_LLM_JUDGE","")),
+    "judge_model": os.environ.get("EH_JUDGE_MODEL",""),
+    "enable_review_agent": b(os.environ.get("EH_REVIEW_AGENT","")),
+}
+print(json.dumps(out, separators=(",", ":")))
+PY
+}
+
 eh_count_recent() {
   # count lines of $kind in last N entries of session file
   local sid="$1" kind="$2" tail_n="${3:-10}"

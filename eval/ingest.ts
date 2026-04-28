@@ -105,6 +105,7 @@ async function upsertSession(
   diff: { files_count: number; lines_added: number; lines_removed: number },
   sourceMtime: Date,
   transcriptPath: string | null,
+  configSnapshot: string | null,
 ): Promise<void> {
   await deleteSessionRows(con, sid);
 
@@ -130,7 +131,7 @@ async function upsertSession(
       diff.files_count,
       diff.lines_added,
       diff.lines_removed,
-      null,
+      configSnapshot,
       new Date(),
       sourceMtime,
     ],
@@ -201,8 +202,10 @@ async function main(): Promise<void> {
     }
 
     let transcriptPath: string | null = null;
+    let configSnapshot: string | null = null;
     for (const ev of events) {
       if (ev.kind === "transcript_path") transcriptPath = ev.detail;
+      else if (ev.kind === "config_snapshot" && ev.detail) configSnapshot = ev.detail;
     }
 
     const mtimes: Date[] = [statSync(tsvPath).mtime];
@@ -227,7 +230,7 @@ async function main(): Promise<void> {
     const transcript = parseTranscript(transcriptPath);
     const diff = await gitDiffStats(repo);
 
-    await upsertSession(con, sid, events, transcript, diff, sourceMtime, transcriptPath);
+    await upsertSession(con, sid, events, transcript, diff, sourceMtime, transcriptPath, configSnapshot);
     processed += 1;
     if (!args.quiet) {
       console.log(
