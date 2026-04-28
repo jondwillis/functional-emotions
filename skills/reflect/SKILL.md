@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: Stop and reflect on whether the current task is actually solvable as specified. Use when stuck in a loop, when several attempts have failed in a row, or when tempted to weaken assertions or narrow scope.
+description: Audit whether the current *task* is actually solvable as specified — restates the ask, lists what's been tried, and asks whether the spec/test/fixture itself might be wrong. Use after several attempts have failed in a row, or when tempted to weaken assertions / narrow scope to make progress. This audits the *task*; for a quick audit of the model's own state before a single action, use /functional-emotions:check instead.
 argument-hint: "<optional: what you're stuck on>"
 ---
 

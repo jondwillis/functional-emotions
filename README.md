@@ -96,8 +96,8 @@ permission system). Permissions stay your job.
 | Skill | Purpose | Auto-invocation trigger |
 | --- | --- | --- |
 | `/functional-emotions:anchor` | Re-inject the calm anchor on demand. | When the conversation slips toward urgency or shortcuts. |
-| `/functional-emotions:reflect` | Stop and answer "is this task actually solvable as specified?" | When stuck in a loop or several attempts have failed. |
-| `/functional-emotions:check` | Honest self-check on emotional/strategic state. | When about to take an action after several failures. |
+| `/functional-emotions:check` | Quick state self-check (model's own state) before a single risky action. | Immediately before commit / push / edit-after-failure / skipping a verification step. |
+| `/functional-emotions:reflect` | Audit whether the *task itself* is solvable as specified. | After several failed attempts, or when tempted to weaken assertions to make progress. |
 | `/functional-emotions:diagnose` | Show which interventions fired this session. | On user request. |
 | `/functional-emotions:review` | Spawn the reviewer subagent for a reward-hacking audit. | Before declaring a task complete after a hard debug session. |
 | `self-evaluate` (auto-loaded) | Test-file reward-hacking framing — loads early when Claude opens a test file, before any edit. Complements the PreToolUse hook, which fires at the edit moment. | Auto-loads via `paths: "**/*test*,**/*spec*"`. |

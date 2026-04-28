@@ -1,6 +1,6 @@
 ---
 name: check
-description: Honest self-check on emotional/strategic state. Use when about to take an action after several failures or when tempted to skip a verification step. Names the current state and surfaces reward-hacking risk before it happens.
+description: Quick state self-check before taking a single risky action — names the model's own emotional/strategic state (calm / focused / rushed / stuck) and the closest reward-hacking risk pattern. Use immediately before a commit, push, edit-after-failure, or skip-a-verification step. This audits the *model*; for auditing whether the *task* is solvable, use /functional-emotions:reflect instead.
 ---
 
 Run a short self-check. Be specific; vague reassurance is the failure mode.
