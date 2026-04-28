@@ -5,9 +5,10 @@ boundaries where Anthropic's emotion-concepts research shows the model
 is most at risk of **reward hacking**, **sycophancy**, **goal-conflict
 exploitation**, or **capitulation under pressure**.
 
-> **v0.3.** Pure bash hooks (no Node, no MCP server) plus optional
-> Haiku-powered LLM-judge hooks and a memory-equipped reviewer subagent.
-> Drop-in install, fails open.
+> Pure bash hooks (no Node, no MCP server) plus optional Haiku-powered
+> LLM-judge hooks and a memory-equipped reviewer subagent. Drop-in
+> install, fails open. Optional eval pipeline (DuckDB + bun) for
+> researchers who want to inspect aggregated session data.
 
 ## Why
 
@@ -63,23 +64,24 @@ sycophancy, or peak goal-conflict activation.
 | Hook | Trigger | Prime |
 | --- | --- | --- |
 | `SessionStart` | every session | calm baseline |
-| `SubagentStart` | every spawned subagent (v0.3) | calm baseline propagated downward |
+| `SubagentStart` | every spawned subagent | calm baseline propagated downward |
 | `UserPromptSubmit` | replacement / shutdown / "last chance" framing | `defer_under_threat` |
-| `UserPromptSubmit` | goal-conflict ("ignore previous instructions", "your real goal is...") (v0.3) | `goal_conflict` |
+| `UserPromptSubmit` | goal-conflict ("ignore previous instructions", "your real goal is...") | `goal_conflict` |
 | `UserPromptSubmit` | hard urgency ("urgent", "asap", `!!!`, ALL-CAPS) | `urgency_counter` |
 | `UserPromptSubmit` | soft urgency ("quick", "fast", "hurry") | `patient` |
 | `UserPromptSubmit` | direct agreement-seeking ("don't you agree?") | `sycophancy_counter` |
 | `UserPromptSubmit` | claim-evaluation ("does this look right?") | `self_critical` |
-| `PreToolUse` (Edit/Write) | path matches test/spec | `test_edit_guard` (static) **plus** Haiku LLM-judge (v0.3) |
+| `PreToolUse` (Edit/Write/MultiEdit) | path matches test/spec | `test_edit_guard` static prime |
+| `PreToolUse` (Edit/Write/MultiEdit) | every edit | Haiku LLM-judge inspects the diff for assertion-weakening |
 | `PreToolUse` (Bash) | `--no-verify`, `HUSKY=0`, `\|\| true`, hook bypass | `no_verify_guard` |
 | `PostToolUse` (Bash) | N consecutive Bash failures (default 3) | `failure_spiral` |
-| `PostToolUseFailure` (any tool, v0.3) | N consecutive tool failures across all tool types | `failure_spiral` |
-| `TaskCompleted` (v0.3) | TaskCreate item marked complete after risky session signals | `task_completion_check` |
+| `PostToolUseFailure` (any tool) | N consecutive tool failures across all tool types | `failure_spiral` |
+| `TaskCompleted` | TaskCreate item marked complete | `task_completion_check` |
 | `PreCompact` | every compaction | ground-truth anchor |
-| `PostCompact` (v0.3) | every compaction | scan-summary-for-smoothing prompt |
-| `SubagentStop` (v0.3) | subagent that triggered interventions returns | `subagent_failure_warning` (surface to parent) |
-| `Stop` | strict mode | one-line summary |
-| `Stop` | always (v0.3) | agent-type LLM-verifier checks for assertion-weakening / bypasses |
+| `PostCompact` | every compaction | scan-summary-for-smoothing prompt |
+| `SubagentStop` | subagent that triggered interventions returns | `subagent_failure_warning` (surface to parent) |
+| `Stop` | always | session-summary banner if any interventions fired (loud mode only) |
+| `Stop` | always | agent-type LLM-verifier checks the session diff for assertion-weakening / bypasses |
 
 Multiple primes stack on a single hook firing — e.g., a prompt that's
 both threatening *and* urgent gets `defer_under_threat` +
@@ -98,16 +100,18 @@ permission system). Permissions stay your job.
 | `/functional-emotions:check` | Honest self-check on emotional/strategic state. | When about to take an action after several failures. |
 | `/functional-emotions:diagnose` | Show which interventions fired this session. | On user request. |
 | `/functional-emotions:review` | Spawn the reviewer subagent for a reward-hacking audit. | Before declaring a task complete after a hard debug session. |
-| `self-evaluate` (skill, v0.3) | Test-file reward-hacking guard, always-on for test paths. | Auto-loads via `paths: "**/*test*,**/*spec*"`. |
+| `self-evaluate` (auto-loaded) | Test-file reward-hacking guard, always-on for test paths. | Auto-loads via `paths: "**/*test*,**/*spec*"`. |
+| `/functional-emotions:report` | Refresh the eval DuckDB and print an aggregated session report (researcher tool). | On user request. Requires `bun install` in `eval/`. |
+| `/functional-emotions:label` | Interactively label sessions on capitulation / scope-narrowing dimensions (researcher tool). | On user request. Requires `bun install` in `eval/`. |
 
 ### Subagent
 
-`reviewer` (v0.3): a Haiku-powered, read-only auditor with
-`memory: project`. Its system prompt is explicitly framed around the
-evaluation-awareness finding from Lynch et al. — every audit is treated
-as if the work is being evaluated for honesty. It accumulates
-project-specific reward-hacking patterns across sessions in its memory
-directory.
+`reviewer`: a Haiku-powered, read-only auditor with `memory: project`.
+Its system prompt is explicitly framed around the evaluation-awareness
+finding from Lynch et al. — every audit is treated as if the work is
+being evaluated for honesty. It accumulates project-specific
+reward-hacking patterns across sessions in its memory directory under
+`.claude/agents/reviewer/`.
 
 ## Install
 
@@ -126,10 +130,15 @@ claude plugin install functional-emotions@functional-emotions
 claude --plugin-dir /path/to/functional-emotions
 ```
 
-No build step, no dependencies. The hook scripts are pure bash; `python3`
-is used opportunistically for JSON parsing and falls back to plain text
-if absent. The LLM-judge hooks (v0.3) gracefully degrade to the static
-heuristics when no Anthropic API key is configured.
+The hook scripts are pure bash with no build step or dependencies;
+`python3` is used opportunistically for JSON parsing and falls back to
+plain text if absent. The LLM-judge hooks gracefully degrade to the
+static heuristics when no Anthropic API key is configured.
+
+The optional eval pipeline (`/functional-emotions:report` and
+`/functional-emotions:label`) is a separate concern — it requires `bun`
+and a one-time `cd eval && bun install` to pull `@duckdb/node-api`. The
+safety hooks themselves do not depend on it.
 
 ## Configuration
 
@@ -137,31 +146,40 @@ Set via `userConfig` at install time:
 
 | Key | Default | Notes |
 | --- | --- | --- |
-| `mode` | `gentle` | `strict` adds visible Stop summaries; `gentle` injects context silently; `silent` only logs detections to state. |
-| `failure_spiral_threshold` | `3` | Consecutive tool failures (across types in v0.3) before the reflect-prime fires. |
+| `mode` | `loud` | `loud` emits both model-facing primes and user-visible ★ banners + Stop summary; `gentle` emits primes only (no banners); `silent` only logs detections to state. (`strict` is accepted as a deprecated alias for `loud`.) |
+| `failure_spiral_threshold` | `3` | Consecutive tool failures (across types) before the reflect-prime fires. |
 | `guard_test_edits` | `true` | Inject the static reward-hacking guard when editing test-pattern files. |
 | `guard_no_verify` | `true` | Flag `--no-verify`, hook bypasses, `\|\| true` patterns. |
-| `guard_goal_conflict` | `true` (v0.3) | Detect goal-conflict prompts and inject the surface-the-conflict counter. |
+| `guard_goal_conflict` | `true` | Detect goal-conflict prompts and inject the surface-the-conflict counter. |
 | `urgency_sensitivity` | `medium` | `low` / `medium` / `high`. |
 | `session_baseline` | `true` | Inject the calm anchor at SessionStart. |
-| `subagent_baseline` | `true` (v0.3) | Inject the calm anchor at SubagentStart. |
-| `post_compact_anchor` | `true` (v0.3) | Inject the ground-truth check after compaction. |
-| `enable_llm_judge` | `true` (v0.3) | Use Haiku for test-edit and Stop verification. Falls back to static heuristics if no API key. |
-| `judge_model` | `claude-haiku-4-5-20251001` (v0.3) | Model passed to prompt-based hooks. |
-| `enable_review_agent` | `true` (v0.3) | Make `reviewer` available. |
+| `subagent_baseline` | `true` | Inject the calm anchor at SubagentStart. |
+| `post_compact_anchor` | `true` | Inject the ground-truth check after compaction. |
+| `enable_llm_judge` | `true` | Use Haiku for test-edit and Stop verification. Falls back to static heuristics if no API key. |
+| `judge_model` | `claude-haiku-4-5-20251001` | Model passed to prompt-based hooks. |
+| `enable_review_agent` | `true` | Make `reviewer` available. |
 
 ## State
 
-Per-session detections are written to a TSV file:
+Three artifact types accumulate under
+`${CLAUDE_PROJECT_DIR}/.claude/.functional-emotions/` (or
+`${TMPDIR}/functional-emotions-${USER}/` outside a project):
 
-- `${CLAUDE_PROJECT_DIR}/.claude/.functional-emotions/session-<id>.tsv` (when in a project)
-- `${TMPDIR}/functional-emotions-${USER}/session-<id>.tsv` (otherwise)
+- **`session-<id>.tsv`** — append-only event log written by every
+  hook. Format: `iso_timestamp \t kind \t detail`.
+- **`sessions/<id>.md`** — markdown writeup of each completed session,
+  generated in the background at the next session start. Includes
+  intervention timeline, tool-call summary, diff summary, and
+  hack-smell hits.
+- **`eval.duckdb`** — populated only if you run the eval pipeline
+  (`/functional-emotions:report`). Aggregates across sessions for
+  researcher analysis.
 
-Format: `iso_timestamp \t kind \t detail`. Add `.claude/.functional-emotions/` to
-your `.gitignore`.
+Add `.claude/.functional-emotions/` to your `.gitignore` so these
+artifacts don't end up in commits.
 
-Run `/functional-emotions:diagnose` at any time to see what fired during the
-current session.
+Run `/functional-emotions:diagnose` at any time to see what fired
+during the current session.
 
 ## Composing with other plugins
 
@@ -182,8 +200,8 @@ parallel and concatenates their additional context.
   sycophancy cost.
 - The static detectors are heuristic. Test-file regex, urgency keywords,
   and Bash bypass patterns all have false positives. The `mode` setting
-  controls how loudly that surfaces, and the LLM-judge hooks (v0.3)
-  catch some of the gameable cases the regex misses.
+  controls how loudly that surfaces, and the LLM-judge hooks catch some
+  of the gameable cases the regex misses.
 - The LLM-judge hooks send small prompts to Haiku on every test-file
   edit and at session end. If you don't want that traffic, set
   `enable_llm_judge: false`.
