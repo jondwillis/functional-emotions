@@ -19,13 +19,24 @@ tool="$(eh_json_get "$payload" "tool_name")"
 
 # Best-effort: capture a short detail string for the log.
 detail="${tool:-unknown}"
-if [[ "$tool" == "Bash" ]]; then
-  cmd="$(eh_json_get "$payload" "tool_input.command")"
-  detail="${detail}:${cmd:0:80}"
-elif [[ "$tool" == "Edit" || "$tool" == "Write" || "$tool" == "MultiEdit" ]]; then
-  path="$(eh_json_get "$payload" "tool_input.file_path")"
-  detail="${detail}:${path}"
-fi
+case "$tool" in
+  Bash)
+    cmd="$(eh_json_get "$payload" "tool_input.command")"
+    detail="${detail}:${cmd:0:80}"
+    ;;
+  Edit|Write|MultiEdit|Read)
+    path="$(eh_json_get "$payload" "tool_input.file_path")"
+    detail="${detail}:${path}"
+    ;;
+  NotebookEdit|NotebookRead)
+    path="$(eh_json_get "$payload" "tool_input.notebook_path")"
+    detail="${detail}:${path}"
+    ;;
+  Glob|Grep)
+    pattern="$(eh_json_get "$payload" "tool_input.pattern")"
+    detail="${detail}:${pattern:0:80}"
+    ;;
+esac
 
 eh_log_event "$sid" "tool_fail" "$detail"
 

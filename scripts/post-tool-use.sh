@@ -43,7 +43,7 @@ fi
 if (( failed == 1 )); then
   eh_log_event "$sid" "bash_fail" "${cmd:0:120}"
 else
-  eh_log_event "$sid" "bash_ok" ""
+  eh_log_event "$sid" "bash_ok" "${cmd:0:120}"
 fi
 
 # Look at the last N events; if the trailing run is mostly failures, fire.
