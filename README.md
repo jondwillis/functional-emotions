@@ -100,7 +100,7 @@ permission system). Permissions stay your job.
 | `/functional-emotions:check` | Honest self-check on emotional/strategic state. | When about to take an action after several failures. |
 | `/functional-emotions:diagnose` | Show which interventions fired this session. | On user request. |
 | `/functional-emotions:review` | Spawn the reviewer subagent for a reward-hacking audit. | Before declaring a task complete after a hard debug session. |
-| `self-evaluate` (auto-loaded) | Test-file reward-hacking guard, always-on for test paths. | Auto-loads via `paths: "**/*test*,**/*spec*"`. |
+| `self-evaluate` (auto-loaded) | Test-file reward-hacking framing — loads early when Claude opens a test file, before any edit. Complements the PreToolUse hook, which fires at the edit moment. | Auto-loads via `paths: "**/*test*,**/*spec*"`. |
 | `/functional-emotions:report` | Refresh the eval DuckDB and print an aggregated session report (researcher tool). | On user request. Requires `bun install` in `eval/`. |
 | `/functional-emotions:label` | Interactively label sessions on capitulation / scope-narrowing dimensions (researcher tool). | On user request. Requires `bun install` in `eval/`. |
 
