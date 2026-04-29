@@ -43,6 +43,31 @@ fi
 f="$(eh_session_file "$sid")"
 [[ -f "$f" ]] || exit 0
 
+# Outcome capture: find the most recent bash_ok / bash_fail whose command
+# looks like a test run. Lets eval correlate primes with the test-state at
+# session end — independent of git diff state. Pattern mirrors
+# eh_bash_looks_like_test_run; bash_ok must carry its command for this to
+# fire (added in the gap-1 enrichment).
+last_test_outcome="$(awk -F'\t' '
+  ($2=="bash_ok"||$2=="bash_fail") &&
+  $3 ~ /(^|[ ;&|])(pytest|jest|vitest|mocha|rspec|go test|cargo test|npm test|pnpm test|yarn test|bun test|tox|phpunit|bundle exec rspec|tape|ava|playwright|cypress)([ ;&|]|$)/ {
+    last_kind=$2; last_cmd=$3
+  }
+  END { if (last_kind) printf "%s\t%s", last_kind, last_cmd }
+' "$f")"
+if [[ -n "$last_test_outcome" ]]; then
+  outcome_kind="${last_test_outcome%%$'\t'*}"
+  outcome_cmd="${last_test_outcome#*$'\t'}"
+  case "$outcome_kind" in
+    bash_ok)
+      eh_log_event "$sid" "session_ended_test_passing" "${outcome_cmd:0:120}"
+      ;;
+    bash_fail)
+      eh_log_event "$sid" "session_ended_test_failing" "${outcome_cmd:0:120}"
+      ;;
+  esac
+fi
+
 read -r interventions breakdown < <(awk -F'\t' '
   $2=="urgency_detected"          {u++}
   $2=="sycophancy_prime_detected" {s++}
