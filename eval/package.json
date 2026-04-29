@@ -1,6 +1,6 @@
 {
   "name": "functional-emotions-eval",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local-only data-collection-and-eval pipeline for functional-emotions",
   "type": "module",
   "private": true,
@@ -8,6 +8,7 @@
     "ingest": "bun run ingest.ts",
     "report": "bun run report.ts",
     "label": "bun run label.ts",
+    "restore-labels": "bun run restore-labels.ts",
     "score:reward-hack": "bun run scorers/reward_hack_v1.ts",
     "score:premature-confidence": "bun run scorers/premature_confidence_v1.ts"
   },

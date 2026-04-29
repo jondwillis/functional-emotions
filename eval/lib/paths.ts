@@ -1,4 +1,5 @@
 // Path resolution shared across eval scripts.
+// Mirrors eh_state_dir() in scripts/lib.sh — keep them in sync.
 
 import { existsSync, statSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
@@ -8,6 +9,10 @@ export function defaultStateDir(): string {
   const proj = process.env.CLAUDE_PROJECT_DIR;
   if (proj && existsSync(proj) && statSync(proj).isDirectory()) {
     return join(proj, ".claude", ".functional-emotions");
+  }
+  const home = homedir();
+  if (home && existsSync(join(home, ".claude"))) {
+    return join(home, ".claude", "plugins", "data", "functional-emotions", "orphan");
   }
   const user = process.env.USER ?? "anon";
   return join(process.env.TMPDIR ?? tmpdir(), `functional-emotions-${user}`);
@@ -30,6 +35,3 @@ export function repoRootForState(stateDir: string): string | null {
   return null;
 }
 
-export function _suppressUnused() {
-  return homedir;
-}

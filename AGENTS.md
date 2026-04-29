@@ -83,18 +83,36 @@ useful for narrow exceptions like `profile=off` plus
 
 ## State
 
-Per-session TSV at `${CLAUDE_PROJECT_DIR}/.claude/.functional-emotions/session-<id>.tsv` (or `${TMPDIR}/functional-emotions-${USER}/session-<id>.tsv` outside a project). Writeups at `.../sessions/<id>.md`. Optional eval DB at `.../eval.duckdb`. The state dir should be gitignored — run `/functional-emotions:setup` once per project to do that idempotently, or add `.claude/.functional-emotions/` to `.gitignore` by hand.
+The state dir is resolved by `eh_state_dir()` (bash) and `defaultStateDir()` (TS) — kept in sync. Resolution order:
+
+1. **In a project** → `${CLAUDE_PROJECT_DIR}/.claude/.functional-emotions/`
+2. **User home available** → `${HOME}/.claude/plugins/data/functional-emotions/orphan/`
+3. **Last resort** → `${TMPDIR}/functional-emotions-${USER}/` (ephemeral; sessions evaporate on reboot)
+
+Project-scoped state should be gitignored — run `/functional-emotions:setup` once per project to do that idempotently, or add `.claude/.functional-emotions/` to `.gitignore` by hand.
+
+### Inside the state dir
+
+| Artifact | Role | Durability |
+|---|---|---|
+| `session-<id>.tsv` | Per-session event log; written by every hook | **Canonical.** The source of truth for runtime detections. |
+| `labels.jsonl` | Append-only mirror of the `labels` table | **Canonical.** Survives DB deletion; replayed by `eval/restore-labels.ts`. |
+| `sessions/<id>.md` | Post-session writeup | Derived from TSV + transcript + git diff. Regenerable. |
+| `eval.duckdb` (+ `.wal`) | Eval pipeline cache | Mostly derived (regenerable from TSVs). The `labels` table inside it is the only canonical content — and `labels.jsonl` is its disk mirror, so the DB itself is fully regenerable. |
+
+Anything else lying around (`cbt.duckdb*`, `.cbt-hooks/`) is a pre-rename artifact and safe to delete.
 
 ## Eval pipeline (separate concern)
 
 ```bash
 cd eval
-bun run ingest.ts      # load sessions into DuckDB
-bun run report.ts      # ingest + scorers + SQL queries → markdown
-bun run label.ts       # interactive human labeler
+bun run ingest.ts          # load sessions into DuckDB (regenerable)
+bun run report.ts          # ingest + scorers + SQL queries → markdown
+bun run label.ts           # interactive human labeler (writes DB + labels.jsonl)
+bun run restore-labels.ts  # replay labels.jsonl into a fresh DB
 ```
 
-Requires Bun >= 1.3. Schema at `eval/schema.sql`.
+Requires Bun >= 1.3. Schema at `eval/schema.sql`. The DuckDB file is fully regenerable: re-run `ingest.ts` to rebuild derived tables, then `restore-labels.ts` to replay labels from `labels.jsonl`.
 
 ## Key conventions
 

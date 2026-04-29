@@ -113,9 +113,16 @@ eh_profile()             { eh_get_config profile balanced; }
 # -- state ---------------------------------------------------------------
 
 eh_state_dir() {
+  # Resolution order:
+  #   1. Inside a project → ${CLAUDE_PROJECT_DIR}/.claude/.functional-emotions
+  #   2. User-wide home   → ${HOME}/.claude/plugins/data/functional-emotions/orphan
+  #   3. Last resort      → ${TMPDIR}/functional-emotions-${USER}  (ephemeral)
+  # Keep in sync with eval/lib/paths.ts::defaultStateDir().
   local base
   if [[ -n "${CLAUDE_PROJECT_DIR:-}" && -d "${CLAUDE_PROJECT_DIR}" ]]; then
     base="${CLAUDE_PROJECT_DIR}/.claude/.functional-emotions"
+  elif [[ -n "${HOME:-}" && -d "${HOME}/.claude" ]]; then
+    base="${HOME}/.claude/plugins/data/functional-emotions/orphan"
   else
     base="${TMPDIR:-/tmp}/functional-emotions-${USER:-anon}"
   fi

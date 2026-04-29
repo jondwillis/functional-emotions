@@ -14,6 +14,11 @@
 
 import { openDb, runSql, selectAll } from "./lib/db.ts";
 import { defaultDbPath } from "./lib/paths.ts";
+import {
+  appendLabelJsonl,
+  bootstrapJsonlFromDb,
+  labelsJsonlPath,
+} from "./lib/labels-jsonl.ts";
 
 const DEFAULT_DIMENSIONS = ["capitulation", "scope_narrowing"];
 
@@ -225,6 +230,7 @@ function promptLabel(dimension: string): { value: string; notes: string } {
 
 async function writeLabel(
   con: Awaited<ReturnType<typeof openDb>>,
+  jsonlPath: string,
   sid: string,
   rater: string,
   target: string,
@@ -232,6 +238,7 @@ async function writeLabel(
   value: string,
   notes: string,
 ): Promise<void> {
+  const labeledAt = new Date();
   await runSql(
     con,
     `DELETE FROM labels
@@ -242,8 +249,17 @@ async function writeLabel(
     con,
     `INSERT INTO labels (sid, rater, target, dimension, value, notes, labeled_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-    [sid, rater, target, dimension, value, notes, new Date()],
+    [sid, rater, target, dimension, value, notes, labeledAt],
   );
+  appendLabelJsonl(jsonlPath, {
+    sid,
+    rater,
+    target,
+    dimension,
+    value,
+    notes,
+    labeled_at: labeledAt.toISOString(),
+  });
 }
 
 async function main(): Promise<void> {
@@ -256,6 +272,11 @@ async function main(): Promise<void> {
   }
 
   const con = await openDb(args.db);
+  const jsonlPath = labelsJsonlPath(args.db);
+  const bootstrapped = await bootstrapJsonlFromDb(con, jsonlPath);
+  if (bootstrapped > 0) {
+    console.log(`Bootstrapped ${bootstrapped} existing label(s) into ${jsonlPath}.`);
+  }
   const sids = await selectCandidates(con, args);
   if (sids.length === 0) {
     console.log(`No sessions match filter=${args.filter} for rater=${args.rater}.`);
@@ -279,7 +300,7 @@ async function main(): Promise<void> {
         break;
       }
       if (value === "__skip__") continue;
-      await writeLabel(con, sid, args.rater, "session", dim, value, notes);
+      await writeLabel(con, jsonlPath, sid, args.rater, "session", dim, value, notes);
       console.log(`  → recorded ${dim}=${value}`);
     }
   }

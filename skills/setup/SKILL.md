@@ -53,9 +53,12 @@ Steps:
    means a competing `!` negation pattern earlier in the file), and
    show them the appended lines so they can sort it out.
 
-5. **Report.** Tell the user one sentence: "Added
-   `.claude/.functional-emotions/` to `.gitignore`. Re-run this skill
-   anytime — it's idempotent."
+5. **Report.** Tell the user: "Added `.claude/.functional-emotions/`
+   to `.gitignore`. Re-run this skill anytime — it's idempotent." If
+   relevant, mention what's inside the state dir:
+   - **Canonical** (must persist): `session-*.tsv`, `labels.jsonl`
+   - **Derived** (regenerable): `sessions/*.md`, `eval.duckdb` + `.wal`
+   - **Legacy** (safe to delete): `cbt.duckdb*`
 
 Do not stage or commit the `.gitignore` change. The user decides when
 that gets committed.
