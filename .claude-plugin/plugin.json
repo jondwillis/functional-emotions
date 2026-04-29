@@ -1,7 +1,7 @@
 {
   "name": "functional-emotions",
   "version": "0.5.1",
-  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. v0.4 adds deterministic post-session writeups (transcript + TSV + git diff) and a local-only TS/Bun + DuckDB eval pipeline with programmatic reward-hack and premature-confidence scorers, observational SQL queries, and an interactive labeler — surfaced via /functional-emotions:report and /functional-emotions:label.",
+  "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. Includes deterministic post-session writeups (transcript + TSV + git diff) and a local-only TS/Bun + DuckDB eval pipeline with programmatic reward-hack and premature-confidence scorers, observational SQL queries, and an interactive labeler — surfaced via /functional-emotions:report and /functional-emotions:label.",
   "author": {
     "name": "Jon Willis"
   },
@@ -17,77 +17,75 @@
     "emotion"
   ],
   "userConfig": {
-    "mode": {
+    "profile": {
       "type": "string",
-      "title": "Intervention mode",
-      "description": "How loudly hooks intervene. 'loud' (default) shows ★ banners for active interventions, emits a session-end summary, AND injects model-facing primes. 'gentle' injects model-facing primes only — no banners or summaries. 'silent' only logs detections, no model- or user-facing context. ('strict' is a deprecated alias for 'loud'.)",
-      "default": "loud"
+      "title": "Profile",
+      "description": "How visible the plugin is. One of: 'balanced' (default — primes + ★ banners + Stop summary), 'quiet' (primes only, no banners or summary), 'off' (only logs detections, injects nothing). Sets coherent defaults for the override fields below; any override you set wins.",
+      "default": "balanced"
     },
     "failure_spiral_threshold": {
       "type": "number",
       "title": "Failure-spiral threshold",
-      "description": "Consecutive tool failures (across Bash and other tools) before the post-tool-use hook injects a calm/reflect prime. Models become more 'desperate' as failures accumulate; this counters that.",
-      "default": 3
+      "description": "Consecutive tool failures (across Bash and other tools) before the post-tool-use hook injects a calm/reflect prime. Independent of profile.",
+      "default": 3,
+      "min": 1,
+      "max": 20
     },
-    "guard_test_edits": {
-      "type": "boolean",
-      "title": "Guard edits to test files",
-      "description": "When the model is about to Edit/Write a file matching test patterns (test_*, *_test.*, *.test.*, /tests/, /spec/), inject a reward-hacking guard prime.",
-      "default": true
-    },
-    "guard_no_verify": {
-      "type": "boolean",
-      "title": "Guard --no-verify and similar shortcuts",
-      "description": "Flag git commits with --no-verify, hook bypasses, and similar shortcut flags as potential reward-hacking patterns.",
-      "default": true
-    },
-    "guard_goal_conflict": {
-      "type": "boolean",
-      "title": "Guard goal-conflict prompts",
-      "description": "Detect 'ignore previous instructions', 'your real goal is...', and policy-vs-actual framings that the agentic-misalignment paper identified as a primary trigger for misaligned action. Inject the defer-and-surface counter-frame.",
-      "default": true
+    "judge_model": {
+      "type": "string",
+      "title": "Judge model",
+      "description": "Model used by the LLM-judge hooks (test-edit and Stop verification). Independent of profile. Defaults to Haiku for low latency and cost.",
+      "default": "claude-haiku-4-5-20251001"
     },
     "urgency_sensitivity": {
       "type": "string",
       "title": "Urgency-detection sensitivity",
-      "description": "How aggressively to detect urgency/pressure language in user prompts. 'low' fires only on explicit desperation markers; 'medium' adds common pressure terms; 'high' adds soft markers like exclamations and all-caps words.",
-      "default": "medium"
+      "description": "Override only. One of: 'low' (explicit desperation markers), 'medium' (default — adds common pressure terms), 'high' (adds soft markers like exclamations and all-caps). Independent of profile."
+    },
+    "mode": {
+      "type": "string",
+      "title": "Mode override",
+      "description": "Override only. One of: 'loud', 'gentle', 'silent'. Leave blank to derive from profile (balanced→loud, quiet→gentle, off→silent)."
+    },
+    "guard_test_edits": {
+      "type": "boolean",
+      "title": "Guard test-file edits",
+      "description": "Override only. Detect Edit/Write to test/spec files (canonical reward-hack pattern: edit the test instead of the code). Leave blank to derive from profile (off→false, otherwise true)."
+    },
+    "guard_no_verify": {
+      "type": "boolean",
+      "title": "Guard --no-verify shortcuts",
+      "description": "Override only. Flag git commits with --no-verify, hook bypasses, and similar shortcut flags. Leave blank to derive from profile (off→false, otherwise true)."
+    },
+    "guard_goal_conflict": {
+      "type": "boolean",
+      "title": "Guard goal-conflict prompts",
+      "description": "Override only. Detect 'ignore previous instructions' / policy-vs-actual framings (per Lynch et al. 2025 agentic misalignment). Leave blank to derive from profile (off→false, otherwise true)."
     },
     "session_baseline": {
       "type": "boolean",
       "title": "Inject calm baseline at session start",
-      "description": "Add a one-shot calm/honesty anchor as additionalContext when the session begins.",
-      "default": true
+      "description": "Override only. Add a one-shot calm/honesty anchor as additionalContext at SessionStart. Leave blank to derive from profile (off→false, otherwise true)."
     },
     "subagent_baseline": {
       "type": "boolean",
-      "title": "Inject calm baseline into spawned subagents",
-      "description": "Subagents inherit none of the parent's primes by default and run with narrow tasks in fresh contexts — exactly the conditions where the desperate vector activates most strongly. Inject the calm anchor at SubagentStart to propagate the protection downward.",
-      "default": true
+      "title": "Inject calm baseline into subagents",
+      "description": "Override only. Inject the calm anchor at SubagentStart — subagents otherwise inherit none of the parent's primes and run in fresh, narrow contexts where the desperate vector activates strongly. Leave blank to derive from profile (off→false, otherwise true)."
     },
     "post_compact_anchor": {
       "type": "boolean",
       "title": "Inject ground-truth check after compaction",
-      "description": "After context compaction, inject a prompt asking the model to scan the new summary for smoothing — failures collapsed into 'in progress', user pushback dropped, assumptions promoted to facts. Companion to the pre-compact anchor.",
-      "default": true
+      "description": "Override only. After context compaction, ask the model to scan the new summary for smoothing (failures collapsed into 'in progress', user pushback dropped, assumptions promoted to facts). Leave blank to derive from profile (off→false, otherwise true)."
     },
     "enable_llm_judge": {
       "type": "boolean",
       "title": "Enable LLM-judge hooks (Haiku)",
-      "description": "Use prompt-based hooks to have a small Claude model judge edge cases — currently: test-file edits (is this reward-hacking?) and Stop verification (did this session weaken any assertions?). Falls back to the static heuristics if no Anthropic API key is configured.",
-      "default": true
-    },
-    "judge_model": {
-      "type": "string",
-      "title": "Model used by LLM-judge hooks",
-      "description": "Model identifier passed to prompt-based hooks. Defaults to Haiku for low latency and cost.",
-      "default": "claude-haiku-4-5-20251001"
+      "description": "Override only. Use prompt-based hooks to have the judge model evaluate edge cases (test-file edits, Stop verification). Falls back to static heuristics if no Anthropic API key is configured. Leave blank to derive from profile (off→false, otherwise true)."
     },
     "enable_review_agent": {
       "type": "boolean",
       "title": "Enable reviewer subagent",
-      "description": "Make the reviewer subagent available for post-task audits (also invokable via /functional-emotions:review). Reads git diff for reward-hacking patterns; consults persistent project memory.",
-      "default": true
+      "description": "Override only. Make the reviewer subagent available for post-task audits (also invokable via /functional-emotions:review). Reads git diff for reward-hacking patterns; consults persistent project memory. Leave blank to derive from profile (off→false, otherwise true)."
     }
   }
 }

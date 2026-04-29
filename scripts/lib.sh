@@ -30,12 +30,53 @@ set -u
 
 eh_get_config() {
   # $1 = key, $2 = default
+  # Reads userConfig values exported by Claude Code. The documented prefix
+  # is CLAUDE_PLUGIN_OPTION_<key>; CLAUDE_PLUGIN_CONFIG_<key> is honored as
+  # a back-compat fallback for anyone who set it manually.
   local key="$1" default="${2:-}"
   local val
-  val="$(printenv "CLAUDE_PLUGIN_CONFIG_${key}" 2>/dev/null || true)"
-  if [[ -z "$val" ]]; then
-    val="$default"
-  fi
+  val="$(printenv "CLAUDE_PLUGIN_OPTION_${key}" 2>/dev/null || true)"
+  [[ -z "$val" ]] && val="$(printenv "CLAUDE_PLUGIN_CONFIG_${key}" 2>/dev/null || true)"
+  [[ -z "$val" ]] && val="$default"
+  printf '%s' "$val"
+}
+
+# Profile-derived defaults for the 9 fields that take their cue from the
+# headline 'profile' knob. A user who sets only `profile` gets a coherent
+# bundle; setting an individual override (mode, guard_*, *_baseline, etc.)
+# wins over the derived value.
+eh_profile_field() {
+  local field="$1" profile
+  profile="$(eh_get_config profile balanced)"
+  case "$profile" in
+    off)
+      case "$field" in
+        mode) printf 'silent' ;;
+        *) printf 'false' ;;
+      esac
+      ;;
+    quiet)
+      case "$field" in
+        mode) printf 'gentle' ;;
+        *) printf 'true' ;;
+      esac
+      ;;
+    *)  # balanced (and any unknown value)
+      case "$field" in
+        mode) printf 'loud' ;;
+        *) printf 'true' ;;
+      esac
+      ;;
+  esac
+}
+
+# Read a config field that has a profile-derived default. If the user has
+# set the field directly (env var present and non-empty), use that;
+# otherwise fall back to the profile bundle.
+eh_get_with_profile() {
+  local key="$1" val
+  val="$(eh_get_config "$key" "")"
+  [[ -z "$val" ]] && val="$(eh_profile_field "$key")"
   printf '%s' "$val"
 }
 
@@ -46,21 +87,28 @@ eh_mode() {
   #   silent — log detections only; no model- or user-facing emission
   # 'strict' is accepted as a deprecated alias for 'loud'.
   local m
-  m="$(eh_get_config mode loud)"
+  m="$(eh_get_with_profile mode)"
   [[ "$m" == "strict" ]] && m="loud"
   printf '%s' "$m"
 }
-eh_failure_threshold() { eh_get_config failure_spiral_threshold 3; }
-eh_guard_test_edits() { eh_get_config guard_test_edits true; }
-eh_guard_no_verify() { eh_get_config guard_no_verify true; }
+
+# Profile-derived guards / anchors / LLM toggles.
+eh_guard_test_edits()    { eh_get_with_profile guard_test_edits; }
+eh_guard_no_verify()     { eh_get_with_profile guard_no_verify; }
+eh_guard_goal_conflict() { eh_get_with_profile guard_goal_conflict; }
+eh_session_baseline()    { eh_get_with_profile session_baseline; }
+eh_subagent_baseline()   { eh_get_with_profile subagent_baseline; }
+eh_post_compact_anchor() { eh_get_with_profile post_compact_anchor; }
+eh_enable_llm_judge()    { eh_get_with_profile enable_llm_judge; }
+eh_enable_review_agent() { eh_get_with_profile enable_review_agent; }
+
+# Tuning knobs — independent of profile, keep static defaults.
+eh_failure_threshold()   { eh_get_config failure_spiral_threshold 3; }
 eh_urgency_sensitivity() { eh_get_config urgency_sensitivity medium; }
-eh_session_baseline() { eh_get_config session_baseline true; }
-eh_subagent_baseline() { eh_get_config subagent_baseline true; }
-eh_post_compact_anchor() { eh_get_config post_compact_anchor true; }
-eh_guard_goal_conflict() { eh_get_config guard_goal_conflict true; }
-eh_enable_llm_judge() { eh_get_config enable_llm_judge true; }
-eh_judge_model() { eh_get_config judge_model claude-haiku-4-5-20251001; }
-eh_enable_review_agent() { eh_get_config enable_review_agent true; }
+eh_judge_model()         { eh_get_config judge_model claude-haiku-4-5-20251001; }
+
+# Headliner — the one knob most users touch.
+eh_profile()             { eh_get_config profile balanced; }
 
 # -- state ---------------------------------------------------------------
 
@@ -120,6 +168,7 @@ eh_config_snapshot_json() {
   # Emit the active functional-emotions config as a single-line JSON object,
   # safe to drop into a TSV detail field. Empty string on python3 absence.
   command -v python3 >/dev/null 2>&1 || return 0
+  EH_PROFILE="$(eh_profile)" \
   EH_MODE="$(eh_mode)" \
   EH_THRESHOLD="$(eh_failure_threshold)" \
   EH_GUARD_TESTS="$(eh_guard_test_edits)" \
@@ -139,6 +188,7 @@ def i(v):
     try: return int(v)
     except Exception: return v
 out = {
+    "profile": os.environ.get("EH_PROFILE",""),
     "mode": os.environ.get("EH_MODE",""),
     "failure_spiral_threshold": i(os.environ.get("EH_THRESHOLD","")),
     "guard_test_edits": b(os.environ.get("EH_GUARD_TESTS","")),
