@@ -1,6 +1,6 @@
 {
   "name": "functional-emotions",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Hook-based 'emotional priming' for Claude Code. Counters the desperation/urgency/sycophancy/goal-conflict patterns shown to causally drive reward hacking, blackmail-like reasoning, and capitulation in Anthropic's emotion-concepts and agentic-misalignment research. Includes deterministic post-session writeups (transcript + TSV + git diff) and a local-only TS/Bun + DuckDB eval pipeline with programmatic reward-hack and premature-confidence scorers, observational SQL queries, and an interactive labeler — surfaced via /functional-emotions:report and /functional-emotions:label.",
   "author": {
     "name": "Jon Willis"

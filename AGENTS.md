@@ -38,22 +38,48 @@ The hooks are pure bash with no build step or dependencies; `python3` is used op
 
 ## Config
 
-All via environment variables at install time — **no config file**:
+Configure via `/plugin config functional-emotions` after install, or
+set the corresponding `CLAUDE_PLUGIN_OPTION_<key>` environment variable
+before launching Claude. (Legacy `CLAUDE_PLUGIN_CONFIG_<key>` is also
+honored for back-compat; new setups should use `OPTION_`.)
 
-```
-CLAUDE_PLUGIN_CONFIG_mode = loud | gentle | silent       # default loud; `strict` accepted as deprecated alias for loud
-CLAUDE_PLUGIN_CONFIG_failure_spiral_threshold = 3
-CLAUDE_PLUGIN_CONFIG_guard_test_edits = true | false
-CLAUDE_PLUGIN_CONFIG_guard_no_verify = true | false
-CLAUDE_PLUGIN_CONFIG_guard_goal_conflict = true | false
-CLAUDE_PLUGIN_CONFIG_urgency_sensitivity = low | medium | high
-CLAUDE_PLUGIN_CONFIG_session_baseline = true | false
-CLAUDE_PLUGIN_CONFIG_subagent_baseline = true | false
-CLAUDE_PLUGIN_CONFIG_post_compact_anchor = true | false
-CLAUDE_PLUGIN_CONFIG_enable_llm_judge = true | false
-CLAUDE_PLUGIN_CONFIG_judge_model = claude-haiku-4-5-20251001
-CLAUDE_PLUGIN_CONFIG_enable_review_agent = true | false
-```
+### Profile — the one knob most users set
+
+| `profile`  | mode    | guards & anchors & LLM hooks |
+|------------|---------|------------------------------|
+| `balanced` | loud    | all on                       |
+| `quiet`    | gentle  | all on                       |
+| `off`      | silent  | all off                      |
+
+`balanced` is the default. `quiet` keeps the model-facing primes but
+suppresses ★ banners and the Stop summary. `off` only logs detections.
+
+### Tuning fields (independent of profile)
+
+| Key                        | Type   | Default                       | Notes |
+|----------------------------|--------|-------------------------------|-------|
+| `failure_spiral_threshold` | number | `3` (range 1–20)              | Consecutive Bash failures before the calm/reflect prime fires. |
+| `judge_model`              | string | `claude-haiku-4-5-20251001`   | Used by the LLM-judge hooks (test-edit, Stop verification). |
+| `urgency_sensitivity`      | string | `medium` (`low`/`medium`/`high`) | How aggressively to detect pressure language in user prompts. |
+
+### Override fields (blank → derived from profile)
+
+Each of these fields, when blank, takes its value from the profile
+bundle above. Setting any of them directly wins over the profile —
+useful for narrow exceptions like `profile=off` plus
+`enable_review_agent=true`.
+
+| Key                   | Type    | Profile-derived default                     |
+|-----------------------|---------|---------------------------------------------|
+| `mode`                | string  | balanced→`loud`, quiet→`gentle`, off→`silent` (also accepts deprecated `strict`→`loud`) |
+| `guard_test_edits`    | boolean | off→`false`, otherwise `true`               |
+| `guard_no_verify`     | boolean | off→`false`, otherwise `true`               |
+| `guard_goal_conflict` | boolean | off→`false`, otherwise `true`               |
+| `session_baseline`    | boolean | off→`false`, otherwise `true`               |
+| `subagent_baseline`   | boolean | off→`false`, otherwise `true`               |
+| `post_compact_anchor` | boolean | off→`false`, otherwise `true`               |
+| `enable_llm_judge`    | boolean | off→`false`, otherwise `true`               |
+| `enable_review_agent` | boolean | off→`false`, otherwise `true`               |
 
 ## State
 
