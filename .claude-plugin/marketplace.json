@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Emotional-priming hooks for Claude Code, grounded in Anthropic's emotion-concepts research, with a post-session writeup + DuckDB eval pipeline for measuring intervention effects",
-    "version": "0.5.1"
+    "version": "0.6.0"
   },
   "plugins": [
     {
