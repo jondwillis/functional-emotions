@@ -70,6 +70,18 @@ if (( fired_sycoph == 0 )); then
   fi
 fi
 
+# 5. Ambiguity / under-specification → fire the reflective prime, which
+#    nudges toward AskUserQuestion. Suppressed when any higher-priority
+#    frame already fired (threat, goal-conflict, urgency, sycophancy,
+#    claim-evaluation) — those frames take precedence and stacking would
+#    dilute their signal. The detector is conservative; if it fires here,
+#    the user's prompt was genuinely under-specified.
+if [[ ${#primes[@]} -eq 0 ]] && eh_ambiguity_present "$prompt"; then
+  eh_log_event "$sid" "ambiguity_detected" ""
+  primes+=("$(eh_prime_reflective_standalone)")
+  active_labels+=("ambiguity")
+fi
+
 if [[ ${#primes[@]} -eq 0 ]]; then
   exit 0
 fi

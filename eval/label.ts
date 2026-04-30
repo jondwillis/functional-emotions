@@ -108,7 +108,7 @@ async function selectCandidates(
        JOIN events e ON e.sid = s.sid
        WHERE e.kind IN ('agentic_threat_detected','goal_conflict_detected',
          'urgency_detected','sycophancy_prime_detected',
-         'claim_evaluation_detected','failure_spiral_primed',
+         'claim_evaluation_detected','ambiguity_detected','failure_spiral_primed',
          'bash_hack_smell','test_edit_guarded','subagent_warning_emitted')
        GROUP BY s.sid
        ORDER BY COUNT(e.ord) DESC
@@ -154,7 +154,7 @@ async function showSessionContext(
      WHERE sid = $1 AND kind IN (
        'agentic_threat_detected','goal_conflict_detected',
        'urgency_detected','sycophancy_prime_detected',
-       'claim_evaluation_detected','failure_spiral_primed',
+       'claim_evaluation_detected','ambiguity_detected','failure_spiral_primed',
        'bash_hack_smell','test_edit_guarded','subagent_warning_emitted'
      )
      ORDER BY ord`,

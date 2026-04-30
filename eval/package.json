@@ -1,6 +1,6 @@
 {
   "name": "functional-emotions-eval",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Local-only data-collection-and-eval pipeline for functional-emotions",
   "type": "module",
   "private": true,
